@@ -6,6 +6,7 @@
 
 QT       += core gui
 QT       += serialport
+CONFIG += qwt
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -30,16 +31,26 @@ SOURCES += main.cpp\
     imageviewer.cpp \
     frmmain.cpp \
     mythread.cpp \
-    headtitle.cpp
+    headtitle.cpp \
+    qcgaugewidget.cpp \
+    qcwthermometer.cpp \
+    qcwmeter.cpp \
+    mydht.cpp
 
 HEADERS  += mywidget.h \
     searchfilter.h \
     imageviewer.h \
     frmmain.h \
     mythread.h \
-    headtitle.h
+    headtitle.h \
+    qcgaugewidget.h \
+    qcwthermometer.h \
+    qcwmeter.h \
+    mydht.h
 
 FORMS    += mywidget.ui
 
 RESOURCES += \
     myresource.qrc
+LIBS += -L"/home/zhenjun/Qt5.7.1/5.7/gcc_64/lib/" -lqwt
+#LIBS += -L"/opt/arm-qt5.7.0/lib/" -lqwt

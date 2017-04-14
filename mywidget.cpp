@@ -5,6 +5,7 @@
 #include <QDebug>
 #include "frmmain.h"
 
+
 MyWidget::MyWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MyWidget)
@@ -14,18 +15,16 @@ MyWidget::MyWidget(QWidget *parent) :
     ui->login_lable->adjustSize();
     //ui->label->adjustSize();
     page_index = 0;
-    ui->stackedWidget->setCurrentIndex(page_index);
+    ui->stackedWidget->setCurrentIndex(2);
     //qDebug()<<ui->stackedWidget->indexOf(ui->LoginPage);
 
     dir_str = QDir::currentPath();
     dir_str += "/";
     //qDebug()<<dir_str;
 
-
     filters << "*.jpg";
 
     diy_control = new frmMain();
-
     ui->textEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->label->setDisabled(true);
 
@@ -90,9 +89,29 @@ MyWidget::MyWidget(QWidget *parent) :
     connect(this, &MyWidget::load_image, this, &MyWidget::show_image);
 
     dht_title = new headtitle(QString("://src_img/left.png"),QString("图片浏览"),QString("://src_img/right.png"),0);
-    QHBoxLayout *dht_layout = new QHBoxLayout();
-    dht_layout->addWidget(dht_title);
-    ui->DHTPage->setLayout(dht_layout);
+
+//    mAttitudeGauge = new QcGaugeWidget(0);
+//    mAttitudeGauge->addBackground(99);
+//    QcBackgroundItem *bkg = mAttitudeGauge->addBackground(92);
+//    bkg->clearrColors();
+//    bkg->addColor(0.1,Qt::black);
+//    bkg->addColor(1.0,Qt::white);
+//    mAttMeter = mAttitudeGauge->addAttitudeMeter(88);
+
+//    mAttitudeNeedle = mAttitudeGauge->addNeedle(70);
+//    mAttitudeNeedle->setMinDegree(0);
+//    mAttitudeNeedle->setMaxDegree(180);
+//    mAttitudeNeedle->setValueRange(0,180);
+//    mAttitudeNeedle->setCurrentValue(90);
+//    mAttitudeNeedle->setColor(Qt::white);
+//    mAttitudeNeedle->setNeedle(QcNeedleItem::AttitudeMeterNeedle);
+//    mAttitudeGauge->addGlass(80);
+
+    //dht_layout->addWidget(my_dial);
+    //dht_layout->addWidget(mAttitudeGauge);
+    //dht_layout->addWidget(thermometer);
+
+
     connect(dht_title,&headtitle::left,this,&MyWidget::change_left);
     connect(dht_title,&headtitle::right,this,&MyWidget::change_right);
 
@@ -107,8 +126,19 @@ MyWidget::MyWidget(QWidget *parent) :
     //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
     connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
     detectSerial();//探测当前系统可用的串口列表
+
+
 }
 
+void MyWidget::setDHTLayout(int num=16)
+{
+    dht_items = new MyDHT[num];
+    for(int i = 0; i < num;i++)
+    {
+
+    }
+
+}
 
 void MyWidget::dealClose()
 {

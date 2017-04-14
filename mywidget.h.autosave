@@ -26,7 +26,7 @@ public:
     explicit MyWidget(QWidget *parent = 0);
     ~MyWidget();
     void detectSerial();//探测系统可用的串口列表
-    void setDHTLayout(int num);
+    void setDHTLayout(int num=16);
 
 signals:
     void load_image(const QString&  file_name);
