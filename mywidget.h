@@ -1,0 +1,70 @@
+#ifndef MYWIDGET_H
+#define MYWIDGET_H
+
+#include <QWidget>
+#include "searchfilter.h"
+#include "imageviewer.h"
+#include "frmmain.h"
+#include "mythread.h"
+namespace Ui {
+class MyWidget;
+}
+
+class MyWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit MyWidget(QWidget *parent = 0);
+    ~MyWidget();
+    void detectSerial();//探测系统可用的串口列表
+
+signals:
+    void load_image(const QString&  file_name);
+    void initUart(QSerialPortInfo info);//发送给子线程的串口初始化信号
+
+
+
+private slots:
+    void on_pushButton_clicked();
+    void dealNum();
+
+    void closeAPP();
+
+    void on_pushButtonDel_clicked();
+
+    void on_pushButtonOK_clicked();
+
+
+    void show_next();
+    void show_prev();
+    void show_image(const QString& picture_path);
+    //串口选择下拉框槽函数
+    void on_comboBox_currentIndexChanged(const QString &arg1);
+    //处理关闭窗口/应用程序的操作
+    //主要是为了结束子线程
+    void dealClose();
+    //void showImage(QImage image);
+
+    void on_pushButtonExit_clicked();
+    void my_Init(const QString& picture_path);
+
+private:
+    Ui::MyWidget *ui;
+    QString resultStr;  //结果数
+    QString dir_str;  //目录
+
+    SearchFilter* m_widget_search_filter;
+    ImageViewer* m_widget_image_viewr;
+    frmMain * diy_control;
+
+    MyThread *myT;//自定义对象指针--将要放入子线程
+
+    QThread *thread;//子线程--负责串口数据的读取
+    QStringList filters;
+
+    QPushButton * PhotoLeftBtn;
+    QPushButton * PhotoRightBtn;
+};
+
+#endif // MYWIDGET_H
