@@ -29,7 +29,7 @@ ImageViewer::ImageViewer(QWidget *parent) : QWidget(parent)
     //QPushButton* btn_zoom_out = new QPushButton("-");
     //QPushButton* btn_zoom_in = new QPushButton("+");
     btn_next = new QPushButton("下一张");
-    btn_close = new QPushButton("退出");
+    btn_close = new QPushButton("退  出");
 
     diy_control->setBtnQss(btn_prev, "#34495E", "#FFFFFF", "#4E6D8C", "#F0F0F0", "#2D3E50", "#B8C6D1");
     diy_control->setBtnQss(btn_next, "#1ABC9C", "#E6F8F5", "#2EE1C1", "#FFFFFF", "#16A086", "#A7EEE6");

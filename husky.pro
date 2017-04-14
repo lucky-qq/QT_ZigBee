@@ -29,13 +29,15 @@ SOURCES += main.cpp\
     searchfilter.cpp \
     imageviewer.cpp \
     frmmain.cpp \
-    mythread.cpp
+    mythread.cpp \
+    headtitle.cpp
 
 HEADERS  += mywidget.h \
     searchfilter.h \
     imageviewer.h \
     frmmain.h \
-    mythread.h
+    mythread.h \
+    headtitle.h
 
 FORMS    += mywidget.ui
 

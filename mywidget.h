@@ -6,6 +6,9 @@
 #include "imageviewer.h"
 #include "frmmain.h"
 #include "mythread.h"
+#include "headtitle.h"
+
+
 namespace Ui {
 class MyWidget;
 }
@@ -48,6 +51,8 @@ private slots:
 
     void on_pushButtonExit_clicked();
     void my_Init(const QString& picture_path);
+    void change_left();
+    void change_right();
 
 private:
     Ui::MyWidget *ui;
@@ -62,9 +67,12 @@ private:
 
     QThread *thread;//子线程--负责串口数据的读取
     QStringList filters;
+    headtitle * photo_title;
+    headtitle * dht_title;
 
-    QPushButton * PhotoLeftBtn;
-    QPushButton * PhotoRightBtn;
+
+    int page_index;
+
 };
 
 #endif // MYWIDGET_H
