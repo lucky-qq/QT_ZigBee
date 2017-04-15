@@ -85,6 +85,7 @@ MyWidget::MyWidget(QWidget *parent) :
 
 
     ui->PhotoPage->setLayout(main_layout);
+
     connect(photo_title,&headtitle::left,this,&MyWidget::change_left);
     connect(photo_title,&headtitle::right,this,&MyWidget::change_right);
     m_widget_search_filter->Init(dir_str, filters);
@@ -114,10 +115,10 @@ MyWidget::MyWidget(QWidget *parent) :
 void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
 {
      QHBoxLayout *line1_dht = new QHBoxLayout();
-
      QHBoxLayout *line2_dht= new QHBoxLayout();
-
      QVBoxLayout *v_layout= new  QVBoxLayout();
+     QVBoxLayout *main_layout= new  QVBoxLayout();
+     QWidget * tmp = new QWidget();
 
 
     int line2_cnt = num /2;
@@ -134,14 +135,25 @@ void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
         line2_dht->addWidget(dht_items + i);
     }
 
-    if(widget == ui->DHTPage)
-        v_layout->addWidget(dht_title1);
-    else
-        v_layout->addWidget(dht_title2);
+
     v_layout->addLayout(line1_dht);
     v_layout->addLayout(line2_dht);
 
-    widget->setLayout(v_layout);
+    tmp->setLayout(v_layout);
+    tmp->setMinimumHeight(530);
+
+    if(widget == ui->DHTPage)
+        main_layout->addWidget(dht_title1);
+    else
+        main_layout->addWidget(dht_title2);
+
+
+
+    main_layout->addWidget(tmp);
+    main_layout->setMargin(0);
+    main_layout->setSpacing(0);
+
+    widget->setLayout(main_layout);
 }
 
 void MyWidget::setDHTLayout(int num)
@@ -151,6 +163,7 @@ void MyWidget::setDHTLayout(int num)
     int count1 = num -count2;
 
     dht_items1 = new MyDHT[count1];
+
     set_one_page(dht_items1,ui->DHTPage,count1);
     for(int i = 0; i < count1;i++)
     {
@@ -158,6 +171,7 @@ void MyWidget::setDHTLayout(int num)
     }
 
     dht_items2 = new MyDHT[count2];
+
     set_one_page(dht_items2,ui->DHTPage2,count2);
     for(int i = 0; i < count2;i++)
     {

@@ -31,12 +31,11 @@ MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
 
     QSpacerItem* left = new QSpacerItem(75, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
     QSpacerItem* right = new QSpacerItem(75, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
-    QSpacerItem* mid = new QSpacerItem(5, 40, QSizePolicy::Fixed, QSizePolicy::Minimum);
+
     QHBoxLayout * humiture_layout = new QHBoxLayout();
 
     humiture_layout->addSpacerItem(left);
     humiture_layout->addWidget(meter);
-    humiture_layout->addSpacerItem(mid);
     humiture_layout->addWidget(thermometer);
     humiture_layout->addSpacerItem(right);
     humiture_layout->setSpacing(0);

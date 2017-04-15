@@ -18,8 +18,8 @@ headtitle::headtitle(QString left_btn,QString  str,QString right_btn,QWidget *pa
 
     LeftBtn->setMinimumWidth(80);
     LeftBtn->setMaximumWidth(80);
-    LeftBtn->setMinimumHeight(80);
-    LeftBtn->setMinimumHeight(80);
+    LeftBtn->setMinimumHeight(60);
+    LeftBtn->setMinimumHeight(60);
     //diy_control->setBtnQss(PhotoLeftBtn, "#3498DB", "#FFFFFF", "#5DACE4", "#E5FEFF", "#2483C7", "#A0DAFB");
     LeftBtn->setFlat(true);
     //PhotoLeftBtn->setStyleSheet("background: transparent;outline: none");
@@ -33,8 +33,8 @@ headtitle::headtitle(QString left_btn,QString  str,QString right_btn,QWidget *pa
 
     RightBtn->setMinimumWidth(80);
     RightBtn->setMaximumWidth(80);
-    RightBtn->setMinimumHeight(80);
-    RightBtn->setMinimumHeight(80);
+    RightBtn->setMinimumHeight(60);
+    RightBtn->setMinimumHeight(60);
     //diy_control->setBtnQss(PhotoRightBtn, "#1ABC9C", "#E6F8F5", "#2EE1C1", "#FFFFFF", "#16A086", "#A7EEE6");
     RightBtn->setFlat(true);
     //RightBtn->setStyleSheet("background: transparent;outline: none");
@@ -61,8 +61,6 @@ headtitle::headtitle(QString left_btn,QString  str,QString right_btn,QWidget *pa
     tool_layout->addWidget(RightBtn);
 
     this->setLayout(tool_layout);
-    this->setMaximumHeight(80);
-    this->setMinimumHeight(80);
 
     connect(LeftBtn,&QPushButton::clicked,this,&headtitle::resolv_left);
     connect(RightBtn,&QPushButton::clicked,this,&headtitle::resolv_right);

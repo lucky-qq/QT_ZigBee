@@ -4,7 +4,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    //QApplication::setOverrideCursor(Qt::BlankCursor);
+    QApplication::setOverrideCursor(Qt::BlankCursor);
     MyWidget w;
     w.show();
 
