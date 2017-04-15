@@ -10,20 +10,15 @@ MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
 {
     thermometer=new QcwThermometer();
     thermometer->resize(56, 200);
-    //thermometer->setMaximumHeight(200);
     thermometer->setMaximumWidth(80);
     thermometer->setMinimumWidth(80);
-    //thermometer->setMinimumHeight(200);
     thermometer->setValue(10);
     thermometer->setMaxValue(50);
     thermometer->setMinValue(0);
 
     meter=new QcwMeter();
     meter->resize(200, 200);
-    //meter->setMaximumWidth(200);
-    //meter->setMaximumHeight(125);
     meter->setMinimumWidth(160);
-    //meter->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     meter->setMaxValue(100);
     meter->setMinValue(0);

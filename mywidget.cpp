@@ -13,9 +13,7 @@ MyWidget::MyWidget(QWidget *parent) :
 
     ui->setupUi(this);
     ui->login_lable->adjustSize();
-    //ui->label->adjustSize();
     page_index = 0;
-
     //qDebug()<<ui->stackedWidget->indexOf(ui->LoginPage);
 
     dir_str = QDir::currentPath();
@@ -26,8 +24,7 @@ MyWidget::MyWidget(QWidget *parent) :
 
     dht_title1 = new headtitle(QString("://src_img/p_left.png"),QString("节点温湿度数据"),QString("://src_img/p_right.png"),0);
     dht_title2 = new headtitle(QString("://src_img/p_left.png"),QString("节点温湿度数据"),QString("://src_img/p_right.png"),0);
-    //dht_title1->setMaximumHeight(100);
-    //dht_title2->setMaximumHeight(100);
+
     connect(dht_title1,&headtitle::left,this,&MyWidget::change_left);
     connect(dht_title1,&headtitle::right,this,&MyWidget::change_right);
     connect(dht_title2,&headtitle::left,this,&MyWidget::change_left);
@@ -86,7 +83,7 @@ MyWidget::MyWidget(QWidget *parent) :
     main_layout->setMargin(0);
     main_layout->setSpacing(0);
 
-    //QWidget* main_widget = new QWidget(this);
+
     ui->PhotoPage->setLayout(main_layout);
     connect(photo_title,&headtitle::left,this,&MyWidget::change_left);
     connect(photo_title,&headtitle::right,this,&MyWidget::change_right);
@@ -97,8 +94,6 @@ MyWidget::MyWidget(QWidget *parent) :
     connect(m_widget_image_viewr, &ImageViewer::signal_prev, this,  &MyWidget::show_prev);
     connect(m_widget_image_viewr, &ImageViewer::signal_close, this,  &MyWidget::closeAPP);
     connect(this, &MyWidget::load_image, this, &MyWidget::show_image);
-    //ui->setupUi(this);
-
 
     //对于子线程的东西（将被移入子线程的自定义对象以及线程对象），最好定义为指针
     myT = new MyThread;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
@@ -112,7 +107,7 @@ MyWidget::MyWidget(QWidget *parent) :
     connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
     detectSerial();//探测当前系统可用的串口列表
     setDHTLayout(15);
-    ui->stackedWidget->setCurrentIndex(2);
+    ui->stackedWidget->setCurrentIndex(0);
 }
 
 
@@ -121,7 +116,7 @@ void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
      QHBoxLayout *line1_dht = new QHBoxLayout();
 
      QHBoxLayout *line2_dht= new QHBoxLayout();
-     //QHBoxLayout *title_layout= new QHBoxLayout();
+
      QVBoxLayout *v_layout= new  QVBoxLayout();
 
 
@@ -132,32 +127,19 @@ void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
     {
         line1_dht->addWidget(dht_items + i);
     }
-    //line1_dht->setSpacing(0);
-    //line1_dht->setMargin(0);
-    //int width = dht_items->meter->width();
-    //int height = dht_items->meter->height();
+
     for(int i = line1_cnt; i < num;i++)
     {
-        //(dht_items + i)->meter->setMaximumWidth(170);
-        //(dht_items + i)->meter->setMaximumHeight(height);
-        //(dht_items + i)->meter->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        //(dht_items + i)->set_info("node");
+
         line2_dht->addWidget(dht_items + i);
     }
-//    line2_dht->setSpacing(0);
-//    line2_dht->setMargin(0);
 
-    //title_layout->addWidget(dht_title);
-//    title_layout->setSpacing(0);
-//    title_layout->setMargin(0);
     if(widget == ui->DHTPage)
         v_layout->addWidget(dht_title1);
     else
         v_layout->addWidget(dht_title2);
     v_layout->addLayout(line1_dht);
     v_layout->addLayout(line2_dht);
-//    v_layout->setSpacing(0);
-//    v_layout->setMargin(0);
 
     widget->setLayout(v_layout);
 }
