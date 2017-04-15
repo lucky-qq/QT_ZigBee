@@ -9,6 +9,10 @@
 #include <QSpacerItem>
 
 
+#define KEY_NUMBER 15
+#define LINE_NUM 5
+
+
 class MyKeyboard : public QWidget
 {
     Q_OBJECT
@@ -22,6 +26,7 @@ private:
 
     QHBoxLayout *h_layout;
     QVBoxLayout *main_layout;
+    frmMain * diy_control;
 
 public:
     QPushButton * key_board;

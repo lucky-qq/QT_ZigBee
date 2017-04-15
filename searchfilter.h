@@ -37,6 +37,8 @@ public:
     void SetCurrentSelectFile_Prev();
     void SetCurrentSelectFile_Next();
     QString  init_file_name;
+    MyKeyboard * key_board;
+    static int show_flag;
 
 signals:
     void signal_current_select_file(const QString& file_name);
@@ -45,10 +47,11 @@ public slots:
     void textChanged_input_edit(const QString& text);
     void onDoubleClick_listView(const QModelIndex& index);
     //void selectChanged_listView(const QItemSelection& selection);
-    bool eventFilter(QObject *,QEvent *);    //注意这里
+    //bool eventFilter(QObject *,QEvent *);    //注意这里
     void dealInput();
     void dealDelete();
     void dealOK();
+    void show_key_board();
 
 private:
     QString m_dir_str;
@@ -59,9 +62,9 @@ private:
     QSortFilterProxyModel* m_proxy_model;
     frmMain * diy_control;
 
-    MyKeyboard * key_board;
 
-    int key_show_flag;
+
+    //int key_show_flag;
 
     QString resultStr;
 

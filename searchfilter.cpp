@@ -10,6 +10,8 @@
 #include <QEvent>
 #include <QMouseEvent>
 
+
+int SearchFilter::show_flag = 0;
 MyLineEdit::MyLineEdit(QWidget *parent) :
     QLineEdit(parent)
 {
@@ -21,7 +23,6 @@ void MyLineEdit::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         //触发clicked信号
         emit clicked();
-        qDebug()<<"press";
     }
     //将该事件传给父类处理
     QLineEdit::mousePressEvent(event);
@@ -32,8 +33,8 @@ SearchFilter::SearchFilter(QWidget *parent) : QWidget(parent)
     //输入框
     m_input_edit = new MyLineEdit();
     m_input_edit->setMinimumHeight(35);
-    m_input_edit->installEventFilter(this);
-    key_show_flag = 0;
+    connect(m_input_edit,&MyLineEdit::clicked,this,&SearchFilter::show_key_board);
+
     //文件列表
     m_file_list_view = new QListView();
 
@@ -61,28 +62,26 @@ SearchFilter::SearchFilter(QWidget *parent) : QWidget(parent)
     key_board->setMinimumWidth(400);
     key_board->setGeometry(0,300,400,300);
 
-
-
     for(int i =0; i < 9;i++)
     {
         connect(((key_board->key_board)+i), &QPushButton::clicked, this, &SearchFilter::dealInput);
     }
-    connect(((key_board->key_board)+9), &QPushButton::clicked, this, &SearchFilter::dealOK);
+    connect(((key_board->key_board)+12), &QPushButton::clicked, this, &SearchFilter::dealOK);
     connect(((key_board->key_board)+10), &QPushButton::clicked, this, &SearchFilter::dealInput);
-    connect(((key_board->key_board)+11), &QPushButton::clicked, this, &SearchFilter::dealDelete);
-   // showKeyItem = new QWidget();
+    connect(((key_board->key_board)+14), &QPushButton::clicked, this, &SearchFilter::dealDelete);
+    connect(((key_board->key_board)+13), &QPushButton::clicked, this, &SearchFilter::dealInput);
 
-//    QSpacerItem* up = new QSpacerItem(40, 75, QSizePolicy::Minimum, QSizePolicy::Expanding);
-//    QVBoxLayout *tmp_lay_out = new QVBoxLayout();
-//    tmp_lay_out->addSpacerItem(up);
-//    tmp_lay_out->addWidget(key_board);
-//    showKeyItem->setLayout(tmp_lay_out);
+}
 
-    // my_model = m_file_list_view->selectionModel();
-    //qDebug()<<static_cast<int*>(my_model);
-    //这里绑定了选中变化时发生事件
-    //connect(m_file_list_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-                //this, SLOT(selectChanged_listView(QItemSelection)));
+
+void  SearchFilter::show_key_board()
+{
+    if(SearchFilter::show_flag == 0)
+    {
+        key_board->show();
+        SearchFilter::show_flag = 1;
+    }
+
 }
 
 //数字键处理
@@ -120,46 +119,15 @@ void SearchFilter::dealDelete()
 
 void SearchFilter::dealOK()
 {
-    key_board->close();
-    key_show_flag = 2;
-    m_input_edit->setFocus();
+    if(SearchFilter::show_flag == 1)
+    {
+        key_board->close();
+        SearchFilter::show_flag = 0;
+    }
+    //flag = 0;
 }
 
-bool SearchFilter::eventFilter(QObject *watched, QEvent *event)
-{
-     if (watched==m_input_edit)         //首先判断控件(这里指 lineEdit1)
-     {
-          if (event->type()==QEvent::FocusIn)     //然后再判断控件的具体事件 (这里指获得焦点事件)
-          {
-//              QPalette p=QPalette();
-//              p.setColor(QPalette::Base,Qt::green);
-//              ui->lineEdit1->setPalette(p);
-              if(key_show_flag == 0)
-              {
-                    //key_board-setGeometry();
-                    key_board->show();
-                    //this->addWi showKeyItem->show();
 
-                    key_show_flag = 1;
-              }
-              //key_board->show();
-
-          }
-          else if (event->type()==QEvent::FocusOut)    // 这里指 lineEdit1 控件的失去焦点事件
-          {
-//              QPalette p=QPalette();
-//              p.setColor(QPalette::Base,Qt::white);
-//              ui->lineEdit1->setPalette(p);
-//              if(key_show_flag == 1)
-//              {
-//                    key_show_flag = 0;
-//                    key_board->close();
-//              }
-           }
-     }
-
- return QWidget::eventFilter(watched,event);     // 最后将事件交给上层对话框
-}
 
 //设置搜索过滤目录和文件后缀
 void SearchFilter::Init(const QString &dir_str, const QStringList &filter_list)
@@ -264,7 +232,11 @@ void SearchFilter::onDoubleClick_listView(const QModelIndex &index)
 {
     QString picture_name = index.data().toString();
     QString picture_path = m_dir_str + picture_name;
-
+    if(SearchFilter::show_flag == 1)
+    {
+        key_board->close();
+        SearchFilter::show_flag = 0;
+    }
     emit signal_current_select_file(picture_path);
 
 }

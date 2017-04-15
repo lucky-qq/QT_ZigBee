@@ -254,7 +254,13 @@ void MyWidget::change_left()
     if(0 == --page_index)
         page_index = ui->stackedWidget->count()-1;
     ui->stackedWidget->setCurrentIndex(page_index);
-    //qDebug()<<"left"<<page_index;
+
+    if(SearchFilter::show_flag == 1)
+    {
+        m_widget_search_filter->key_board->close();
+        SearchFilter::show_flag = 0;
+    }
+
 }
 
 void MyWidget::change_right()
@@ -262,6 +268,11 @@ void MyWidget::change_right()
     if(ui->stackedWidget->count() == ++page_index)
         page_index = 1;
     ui->stackedWidget->setCurrentIndex(page_index);
+    if(SearchFilter::show_flag == 1)
+    {
+        m_widget_search_filter->key_board->close();
+        SearchFilter::show_flag = 0;
+    }
 }
 
 void MyWidget::my_Init(const QString& picture_path)
@@ -276,6 +287,11 @@ void MyWidget::on_pushButton_clicked()
 
 void MyWidget::closeAPP()
 {
+    if(SearchFilter::show_flag == 1)
+    {
+        m_widget_search_filter->key_board->close();
+        SearchFilter::show_flag = 0;
+    }
     ui->stackedWidget->setCurrentWidget(ui->LoginPage);
     page_index = 0;
 }
@@ -327,11 +343,21 @@ void MyWidget::on_pushButtonOK_clicked()
 
 void MyWidget::show_next()
 {
+    if(SearchFilter::show_flag == 1)
+    {
+        m_widget_search_filter->key_board->close();
+        SearchFilter::show_flag = 0;
+    }
     m_widget_search_filter->SetCurrentSelectFile_Next();
 }
 
 void MyWidget::show_prev()
 {
+    if(SearchFilter::show_flag == 1)
+    {
+        m_widget_search_filter->key_board->close();
+        SearchFilter::show_flag = 0;
+    }
     m_widget_search_filter->SetCurrentSelectFile_Prev();
 }
 
