@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QDebug>
 
-
+int MyDHT::cnt=0;
 MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
 {
     thermometer=new QcwThermometer();
@@ -59,11 +59,18 @@ MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
     main_layout->setMargin(0);
 
     this->setLayout(main_layout);
+    cnt++;
 }
+
 
 
 void MyDHT::set_info(QString str)
 {
     node_info->setText(str);
+}
+
+int MyDHT::dht_count()
+{
+    return cnt;
 }
 

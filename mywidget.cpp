@@ -109,6 +109,12 @@ MyWidget::MyWidget(QWidget *parent) :
     detectSerial();//探测当前系统可用的串口列表
     setDHTLayout(15);
     ui->stackedWidget->setCurrentIndex(0);
+
+    for(int i = 0;i < dht_items->dht_count();i++)
+    {
+        (dht_items+i)->meter->setValue(10+i);
+        (dht_items+i)->thermometer->setValue(10+2*i);
+    }
 }
 
 
@@ -162,7 +168,8 @@ void MyWidget::setDHTLayout(int num)
     int count2 = num / 2;
     int count1 = num -count2;
 
-    dht_items1 = new MyDHT[count1];
+    dht_items = new MyDHT[num];
+    dht_items1 = dht_items;
 
     set_one_page(dht_items1,ui->DHTPage,count1);
     for(int i = 0; i < count1;i++)
@@ -170,7 +177,7 @@ void MyWidget::setDHTLayout(int num)
         (dht_items1 + i)->set_info(QString("节点 %1").arg(i+1));
     }
 
-    dht_items2 = new MyDHT[count2];
+    dht_items2 = dht_items + count1;
 
     set_one_page(dht_items2,ui->DHTPage2,count2);
     for(int i = 0; i < count2;i++)
@@ -197,8 +204,8 @@ void MyWidget::dealClose()
     thread->wait();
 
     //4. 将要被放入子线程的对象在主线程初始化（构造）的时候不能指定父对象，且需要在子线程结束以后显示delete
-    delete[] dht_items1;
-    delete[] dht_items2;
+    delete[] dht_items;
+
     delete myT;
 }
 

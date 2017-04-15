@@ -35,7 +35,8 @@ SOURCES += main.cpp\
     qcgaugewidget.cpp \
     qcwthermometer.cpp \
     qcwmeter.cpp \
-    mydht.cpp
+    mydht.cpp \
+    mykeyboard.cpp
 
 HEADERS  += mywidget.h \
     searchfilter.h \
@@ -46,7 +47,8 @@ HEADERS  += mywidget.h \
     qcgaugewidget.h \
     qcwthermometer.h \
     qcwmeter.h \
-    mydht.h
+    mydht.h \
+    mykeyboard.h
 
 FORMS    += mywidget.ui
 

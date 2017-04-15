@@ -14,6 +14,7 @@
 #include "mydht.h"
 
 
+
 namespace Ui {
 class MyWidget;
 }
@@ -82,6 +83,7 @@ private:
     int page_index;
     MyDHT * dht_items1;
     MyDHT * dht_items2;
+    MyDHT * dht_items;
 
 
 
