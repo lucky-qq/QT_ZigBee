@@ -134,14 +134,14 @@ void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
     }
     //line1_dht->setSpacing(0);
     //line1_dht->setMargin(0);
-    int width = dht_items->meter->width();
-    int height = dht_items->meter->height();
+    //int width = dht_items->meter->width();
+    //int height = dht_items->meter->height();
     for(int i = line1_cnt; i < num;i++)
     {
-        (dht_items + i)->meter->setMaximumWidth(170);
-        (dht_items + i)->meter->setMaximumHeight(height);
-        (dht_items + i)->meter->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-
+        //(dht_items + i)->meter->setMaximumWidth(170);
+        //(dht_items + i)->meter->setMaximumHeight(height);
+        //(dht_items + i)->meter->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        //(dht_items + i)->set_info("node");
         line2_dht->addWidget(dht_items + i);
     }
 //    line2_dht->setSpacing(0);
@@ -170,9 +170,17 @@ void MyWidget::setDHTLayout(int num)
 
     dht_items1 = new MyDHT[count1];
     set_one_page(dht_items1,ui->DHTPage,count1);
+    for(int i = 0; i < count1;i++)
+    {
+        (dht_items1 + i)->set_info(QString("节点 %1").arg(i+1));
+    }
 
     dht_items2 = new MyDHT[count2];
     set_one_page(dht_items2,ui->DHTPage2,count2);
+    for(int i = 0; i < count2;i++)
+    {
+        (dht_items2 + i)->set_info(QString("节点 %1").arg(i+1+count1));
+    }
 
 }
 
