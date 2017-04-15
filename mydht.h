@@ -11,7 +11,7 @@ public:
     explicit MyDHT(QWidget *parent = 0);
     //MyDHT(int cnt,QWidget *parent = 0);
 
-private:
+public:
     QcwThermometer* thermometer;
     QcwMeter *meter;
 };

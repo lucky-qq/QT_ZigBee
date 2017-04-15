@@ -15,7 +15,7 @@ MyWidget::MyWidget(QWidget *parent) :
     ui->login_lable->adjustSize();
     //ui->label->adjustSize();
     page_index = 0;
-    ui->stackedWidget->setCurrentIndex(2);
+
     //qDebug()<<ui->stackedWidget->indexOf(ui->LoginPage);
 
     dir_str = QDir::currentPath();
@@ -23,6 +23,16 @@ MyWidget::MyWidget(QWidget *parent) :
     //qDebug()<<dir_str;
 
     filters << "*.jpg";
+
+    dht_title1 = new headtitle(QString("://src_img/p_left.png"),QString("节点温湿度数据"),QString("://src_img/p_right.png"),0);
+    dht_title2 = new headtitle(QString("://src_img/p_left.png"),QString("节点温湿度数据"),QString("://src_img/p_right.png"),0);
+    //dht_title1->setMaximumHeight(100);
+    //dht_title2->setMaximumHeight(100);
+    connect(dht_title1,&headtitle::left,this,&MyWidget::change_left);
+    connect(dht_title1,&headtitle::right,this,&MyWidget::change_right);
+    connect(dht_title2,&headtitle::left,this,&MyWidget::change_left);
+    connect(dht_title2,&headtitle::right,this,&MyWidget::change_right);
+
 
     diy_control = new frmMain();
     ui->textEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -87,33 +97,8 @@ MyWidget::MyWidget(QWidget *parent) :
     connect(m_widget_image_viewr, &ImageViewer::signal_prev, this,  &MyWidget::show_prev);
     connect(m_widget_image_viewr, &ImageViewer::signal_close, this,  &MyWidget::closeAPP);
     connect(this, &MyWidget::load_image, this, &MyWidget::show_image);
+    //ui->setupUi(this);
 
-    dht_title = new headtitle(QString("://src_img/left.png"),QString("图片浏览"),QString("://src_img/right.png"),0);
-
-//    mAttitudeGauge = new QcGaugeWidget(0);
-//    mAttitudeGauge->addBackground(99);
-//    QcBackgroundItem *bkg = mAttitudeGauge->addBackground(92);
-//    bkg->clearrColors();
-//    bkg->addColor(0.1,Qt::black);
-//    bkg->addColor(1.0,Qt::white);
-//    mAttMeter = mAttitudeGauge->addAttitudeMeter(88);
-
-//    mAttitudeNeedle = mAttitudeGauge->addNeedle(70);
-//    mAttitudeNeedle->setMinDegree(0);
-//    mAttitudeNeedle->setMaxDegree(180);
-//    mAttitudeNeedle->setValueRange(0,180);
-//    mAttitudeNeedle->setCurrentValue(90);
-//    mAttitudeNeedle->setColor(Qt::white);
-//    mAttitudeNeedle->setNeedle(QcNeedleItem::AttitudeMeterNeedle);
-//    mAttitudeGauge->addGlass(80);
-
-    //dht_layout->addWidget(my_dial);
-    //dht_layout->addWidget(mAttitudeGauge);
-    //dht_layout->addWidget(thermometer);
-
-
-    connect(dht_title,&headtitle::left,this,&MyWidget::change_left);
-    connect(dht_title,&headtitle::right,this,&MyWidget::change_right);
 
     //对于子线程的东西（将被移入子线程的自定义对象以及线程对象），最好定义为指针
     myT = new MyThread;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
@@ -126,17 +111,68 @@ MyWidget::MyWidget(QWidget *parent) :
     //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
     connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
     detectSerial();//探测当前系统可用的串口列表
-
-
+    setDHTLayout(15);
+    ui->stackedWidget->setCurrentIndex(2);
 }
 
-void MyWidget::setDHTLayout(int num=16)
-{
-    dht_items = new MyDHT[num];
-    for(int i = 0; i < num;i++)
-    {
 
+void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
+{
+     QHBoxLayout *line1_dht = new QHBoxLayout();
+
+     QHBoxLayout *line2_dht= new QHBoxLayout();
+     //QHBoxLayout *title_layout= new QHBoxLayout();
+     QVBoxLayout *v_layout= new  QVBoxLayout();
+
+
+    int line2_cnt = num /2;
+    int line1_cnt = num - line2_cnt;
+
+    for(int i = 0; i < line1_cnt;i++)
+    {
+        line1_dht->addWidget(dht_items + i);
     }
+    //line1_dht->setSpacing(0);
+    //line1_dht->setMargin(0);
+    int width = dht_items->meter->width();
+    int height = dht_items->meter->height();
+    for(int i = line1_cnt; i < num;i++)
+    {
+        (dht_items + i)->meter->setMaximumWidth(170);
+        (dht_items + i)->meter->setMaximumHeight(height);
+        (dht_items + i)->meter->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+        line2_dht->addWidget(dht_items + i);
+    }
+//    line2_dht->setSpacing(0);
+//    line2_dht->setMargin(0);
+
+    //title_layout->addWidget(dht_title);
+//    title_layout->setSpacing(0);
+//    title_layout->setMargin(0);
+    if(widget == ui->DHTPage)
+        v_layout->addWidget(dht_title1);
+    else
+        v_layout->addWidget(dht_title2);
+    v_layout->addLayout(line1_dht);
+    v_layout->addLayout(line2_dht);
+//    v_layout->setSpacing(0);
+//    v_layout->setMargin(0);
+
+    widget->setLayout(v_layout);
+}
+
+void MyWidget::setDHTLayout(int num)
+{
+
+    int count2 = num / 2;
+    int count1 = num -count2;
+
+    dht_items1 = new MyDHT[count1];
+    set_one_page(dht_items1,ui->DHTPage,count1);
+
+    dht_items2 = new MyDHT[count2];
+    set_one_page(dht_items2,ui->DHTPage2,count2);
 
 }
 
@@ -157,6 +193,8 @@ void MyWidget::dealClose()
     thread->wait();
 
     //4. 将要被放入子线程的对象在主线程初始化（构造）的时候不能指定父对象，且需要在子线程结束以后显示delete
+    delete[] dht_items1;
+    delete[] dht_items2;
     delete myT;
 }
 

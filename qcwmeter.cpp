@@ -9,7 +9,7 @@ QcwMeter::QcwMeter(QWidget *parent): QWidget(parent)
     m_maxValue = 100;
     m_threshold = 90;
     m_precision = 0;
-    m_units = "km/h";
+    m_units = "%RH";
     m_scaleMajor = 10;
     m_scaleMinor = 10;
     m_startAngle = 60;
@@ -23,6 +23,7 @@ QcwMeter::QcwMeter(QWidget *parent): QWidget(parent)
 
     setMinimumSize(QSize(80, 80));
     resize(100, 100);
+    this->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
 }
 
 void QcwMeter::setValue(double value)
@@ -150,7 +151,7 @@ void QcwMeter::drawScaleNum(QPainter *painter)
 
     for (int i = 0; i <= m_scaleMajor; i++)
     {
-        if(i != 0 && i != 2 && i != 5 && i != 7 && i != 10)
+        if(i != 0 && i != 2 && i != 5 && i != 8 && i != 10)
             continue;
 
         sina = sin(startRad - i * deltaRad);

@@ -52,5 +52,5 @@ FORMS    += mywidget.ui
 
 RESOURCES += \
     myresource.qrc
-LIBS += -L"/home/zhenjun/Qt5.7.1/5.7/gcc_64/lib/" -lqwt
-#LIBS += -L"/opt/arm-qt5.7.0/lib/" -lqwt
+#LIBS += -L"/home/zhenjun/Qt5.7.1/5.7/gcc_64/lib/" -lqwt
+LIBS += -L"/opt/arm-qt5.7.0/lib/" -lqwt

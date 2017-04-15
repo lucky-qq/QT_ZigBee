@@ -26,7 +26,8 @@ public:
     explicit MyWidget(QWidget *parent = 0);
     ~MyWidget();
     void detectSerial();//探测系统可用的串口列表
-    void setDHTLayout(int num);
+    void setDHTLayout(int num=16);
+    void set_one_page(MyDHT * dht_items,QWidget * widget,int num);
 
 signals:
     void load_image(const QString&  file_name);
@@ -74,11 +75,16 @@ private:
     QThread *thread;//子线程--负责串口数据的读取
     QStringList filters;
     headtitle * photo_title;
-    headtitle * dht_title;
+    headtitle * dht_title1;
+    headtitle * dht_title2;
 
 
     int page_index;
-    MyDHT * dht_items;
+    MyDHT * dht_items1;
+    MyDHT * dht_items2;
+
+
+
 
 };
 
