@@ -6,6 +6,7 @@
 #include <QDebug>
 
 int MyDHT::cnt=0;
+
 MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
 {
     thermometer=new QcwThermometer();
@@ -74,3 +75,65 @@ int MyDHT::dht_count()
     return cnt;
 }
 
+//重写mousePressEvent事件,检测事件类型是不是点击了鼠标左键
+void MyDHT::mousePressEvent(QMouseEvent *event) {
+    //如果单击了就触发clicked信号
+    if (event->button() == Qt::LeftButton) {
+        //触发clicked信号
+        //emit clicked();
+        int humiture_w = this->meter->width();
+        int humiture_h = this->meter->height();
+        int temprature_w = this->thermometer->width();
+        int temprature_h = this->thermometer->height();
+        double humiture_val = this->meter->value();
+        double temprature_val = this->thermometer->value();
+
+        tmp = new MyDHT();
+
+        tmp->meter->resize(humiture_w*2,humiture_h*2);
+        tmp->meter->setValue(humiture_val);
+        tmp->meter->setMinimumWidth(160*2);
+        tmp->meter->setMaxValue(100);
+        tmp->meter->setMinValue(0);
+
+        tmp->thermometer->setMaximumWidth(80*2);
+        tmp->thermometer->setMinimumWidth(80*2);
+        tmp->thermometer->setValue(temprature_val);
+        tmp->thermometer->setMaxValue(50);
+        tmp->thermometer->setMinValue(0);
+        tmp->thermometer->resize(temprature_w*2,temprature_h*2);
+
+        //tmp->node_info->adjustSize();
+        tmp->node_info->setMaximumHeight(20*2);
+        tmp->node_info->setStyleSheet(QString::fromUtf8("font: 20pt \"Sans Serif\";"));
+        tmp->set_info(this->get_info());
+
+        tmp->setGeometry(312,100,400,400);
+        tmp->show();
+
+        //tmp->resize(width*2,height*2);
+        //this->resize(width*2,height*2);
+        //qDebug()<<"press";
+
+    }
+    //将该事件传给父类处理
+    QWidget::mousePressEvent(event);
+}
+
+QString MyDHT::get_info()
+{
+    return node_info->text();
+}
+
+void MyDHT::mouseReleaseEvent(QMouseEvent *event)
+{
+
+    //int width = this->width();
+    //int height = this->height();
+    //this->resize(width/2,height/2);
+    tmp->close();
+    //qDebug()<<"release";
+
+    //将该事件传给父类处理
+    QWidget::mousePressEvent(event);
+}
