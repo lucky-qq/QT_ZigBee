@@ -22,8 +22,8 @@ MyWidget::MyWidget(QWidget *parent) :
 
     filters << "*.jpg";
 
-    dht_title1 = new headtitle(QString("://src_img/p_left.png"),QString("节点温湿度数据"),QString("://src_img/p_right.png"),0);
-    dht_title2 = new headtitle(QString("://src_img/p_left.png"),QString("节点温湿度数据"),QString("://src_img/p_right.png"),0);
+    dht_title1 = new headtitle(QString("://src_img/r_left.png"),QString("节点温湿度数据"),QString("://src_img/g_right.png"),0);
+    dht_title2 = new headtitle(QString("://src_img/g_left.png"),QString("节点温湿度数据"),QString("://src_img/p_right.png"),0);
 
     connect(dht_title1,&headtitle::left,this,&MyWidget::change_left);
     connect(dht_title1,&headtitle::right,this,&MyWidget::change_right);
@@ -69,7 +69,7 @@ MyWidget::MyWidget(QWidget *parent) :
     m_widget_search_filter->setMinimumWidth(400);
     m_widget_search_filter->setMaximumWidth(400);
 
-    photo_title = new headtitle(QString("://src_img/p_left.png"),QString("图片浏览"),QString("://src_img/p_right.png"),0);
+    photo_title = new headtitle(QString("://src_img/p_left.png"),QString("图片浏览"),QString("://src_img/r_right.png"),0);
 
     QHBoxLayout *view_layout = new QHBoxLayout();
     view_layout->addWidget(m_widget_search_filter);
