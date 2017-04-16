@@ -13,6 +13,11 @@
 #include "qcwthermometer.h"
 #include "mydht.h"
 
+#define NO_SERIAL       0
+#define ONLY_ZIGBEE     1
+#define ONLY_485        2
+#define BEGIN_ZIGBEE    3
+#define BEGIN_485       4
 
 
 namespace Ui {
@@ -85,8 +90,10 @@ private:
     MyDHT * dht_items2;
     MyDHT * dht_items;
 
-
-
+    char serial_status;
+    char zigbee_exist;
+    char uart485_exist;
+    char serial_count;
 
 };
 

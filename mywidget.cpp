@@ -96,6 +96,11 @@ MyWidget::MyWidget(QWidget *parent) :
     connect(m_widget_image_viewr, &ImageViewer::signal_close, this,  &MyWidget::closeAPP);
     connect(this, &MyWidget::load_image, this, &MyWidget::show_image);
 
+    serial_status = NO_SERIAL;
+    zigbee_exist = 0;
+    uart485_exist = 0;
+    serial_count = 0;
+
     //对于子线程的东西（将被移入子线程的自定义对象以及线程对象），最好定义为指针
     myT = new MyThread;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
     thread = new QThread(this);//初始化子线程线程
@@ -209,11 +214,23 @@ void MyWidget::dealClose()
     delete myT;
 }
 
+
+#define QUERY_ZIGBEE  ("are u zigbee")
+#define ACK_ZIGBEE  ("I am ZigBee")
 void MyWidget::detectSerial()
 {
 
+    //1.打开ttyUSB0
 
-    //1. 绑定信号和曹的时候，如果带参数，在QT5中可以直接给出信号和槽函数名即可
+    //2.发送验证查询信息
+
+    //3.等待接收应答信息
+
+    //4.超时没有应答或者应答的非ZigBee口令信息，则判定ttyUSB0为485模块进行，串口名赋值
+
+    //5.否则为ZigBee模块，进行串口名赋值
+
+    //绑定信号和曹的时候，如果带参数，在QT5中可以直接给出信号和槽函数名即可
     //但是，如果所传递的参数类型是未注册（非本地默认识别的可传递类型）的，需要在绑定之前进行注册
     qRegisterMetaType<QSerialPortInfo>("QSerialPortInfo");
     qRegisterMetaType<QImage>("QImage'");
@@ -232,14 +249,81 @@ void MyWidget::detectSerial()
     QList<QSerialPortInfo>  infos = QSerialPortInfo::availablePorts();
     if(infos.isEmpty())//系统无可用串口
     {
-        ui->comboBox->addItem("无效");//在串口选择下拉框显示“无效”
+        //ui->comboBox->addItem("无效");//在串口选择下拉框显示“无效”
+        QMessageBox::information(this, "串口检测", "没有可用串口！");
         return;
     }
-    ui->comboBox->addItem("串口");//如果有可用串口则在串口选择下拉框显示“串口”
+    //ui->comboBox->addItem("串口");//如果有可用串口则在串口选择下拉框显示“串口”
 
     //将每个可用串口号作为一个条目添加到串口选择下拉框
     foreach (QSerialPortInfo info, infos) {
-        ui->comboBox->addItem(info.portName());
+        //ui->comboBox->addItem(info.portName());
+        if(info.portName().contains("ttyUSB"))
+        {
+
+            qDebug()<<"Aloha";
+            serial_count++;
+            QSerialPort* serial = new QSerialPort();
+            if(serial->isOpen())//先关闭
+                serial->close();
+            serial->setPort(info);//设置串口号--就是从下拉框选择的串口号
+            serial->open(QIODevice::ReadWrite);         //读写打开
+            serial->setBaudRate(QSerialPort::Baud115200);  //波特率
+            serial->setDataBits(QSerialPort::Data8); //数据位
+            serial->setParity(QSerialPort::NoParity);    //无奇偶校验
+            serial->setStopBits(QSerialPort::OneStop);   //停止位
+            serial->setFlowControl(QSerialPort::NoFlowControl);  //无控制
+
+            QString send_array = QString(QUERY_ZIGBEE);
+            QByteArray tmp ;
+
+            tmp.clear();
+            tmp.append(send_array.toUtf8());
+            qint64 ret = serial->write(tmp);
+
+            qDebug()<<serial_count<<" send "<<ret<<QUERY_ZIGBEE;
+
+            int cnt_read = 0;//已经读取到的总字节数
+            int cnt_need = QString(ACK_ZIGBEE).length();//还需要的字节数（只针对完整读取指定长度的数据包）
+            int cnt_tmp = 0;//存放本次读取到的临时长度
+            char tmp_buf[32] = {0};
+            char ack_buf[256] = {0};
+            while(1)
+            {
+
+                qDebug()<<"go into while";
+                if(serial->bytesAvailable() >= 1 || serial->waitForReadyRead(1000))//有可读数据再去读
+                {
+                    cnt_need = QString(ACK_ZIGBEE).length() - cnt_read;//更新当前还需要读取的字节数
+                    cnt_tmp = serial->read(tmp_buf,cnt_need);
+                    if(cnt_tmp > 0)//读取是否成功
+                    {
+
+                        memcpy(ack_buf+cnt_read,tmp_buf,cnt_tmp);//每次都把数据累加到cmd_buf
+                        cnt_read +=  cnt_tmp;
+                        if(cnt_read == QString(ACK_ZIGBEE).length())//是否读取了指定长度
+                        {
+                            if(strcmp(ack_buf,ACK_ZIGBEE) == 0)
+                            {
+                                qDebug()<<"find zigbee";
+                                break;
+                            }
+                        }
+                    }
+                    else if(cnt_tmp == -1)//读串口失败
+                    {
+                        qDebug()<<"read err";
+                    }
+                    continue;
+                }
+                qDebug()<<"not zigbee";
+                break;
+            }
+
+            if(serial->isOpen())//先关闭
+                serial->close();
+        }
+
     }
 }
 
