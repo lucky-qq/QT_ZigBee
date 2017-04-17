@@ -12,6 +12,7 @@
 #include <QImage>
 #include <QPixmap>
 #include <QTimer>
+#include <QDateTime>
 
 
 //一个包的长度信息
@@ -28,13 +29,36 @@
 #define READ_HDR            0x01//读取包头
 #define READ_DATA           0x02//读取有效数据
 
+/*返回值第七位和第八位有效*/
+/*命令是{0x08,0x04,0x00,0x00,0x00,0x05,0x30,0x90}*/
+#define CONDUCT_ADDR        (0x08)
+#define CONDUCT_LENGTH      (15)
+
+/*返回值第三位和第四位有效*/
+/*命令是{0x02,0x03,0,0,0,0x01,0x84,0x39}*/
+#define PH_DEV_ADDR        (0x02)
+#define PH_DEV_LENGTH      (7)
+
+/*返回值第三位到第四位有效*/
+/*命令是{0x01,0x03,0,0,0,0x01,0x84,0x0A}*/
+#define LIGHT_ADDR        (0x01)
+#define LIGHT_LENGTH      (7)
+
+/*485串口工作状态*/
+#define READ_PH         0x01
+#define READ_LIGHT      0x02
+#define READ_CONDUCT    0x03
+
 class MyThread : public QObject
 {
     Q_OBJECT
 public:
     explicit MyThread(QObject *parent = 0);
     void initSerial(QSerialPortInfo info);//串口初始化
+    void initUart485(QSerialPortInfo info);//串口初始化
     void readSerial();//子线程真正的处理函数--在没有结束程序的时候是死循环
+    void readUart485();
+    void beginRead();
     void setFlag(bool flag);//更新isStop标志
 
     //读取指定长度的数据，但是返回的是本次读取到的实际字节数
@@ -43,6 +67,42 @@ public:
     void handleHead(); //处理包头数据
     void handlePhoto();//处理图片的有效数据
     void sendToUart(QByteArray tmp);
+    void sleep(int msec);
+
+    int read_needed_data(int length,char *tmp_buf,char *result_buf);
+
+    /*************************
+     * 电导率操作函数
+    *************************/
+
+    void set_conduct_addr(unsigned char dev_addr,unsigned char addr);
+    void get_conduct_addr(unsigned char dev_addr);
+    void get_conduct_val(unsigned char dev_addr);
+
+    /*************************
+     * PH传感器操作函数
+    *************************/
+    void get_PH_val(unsigned char dev_addr);
+
+
+    /*************************
+     * 光照传感器操作函数
+    *************************/
+    void get_light_val(unsigned char dev_addr);
+
+
+public:
+    /******电导率测量值--目前所用的命令返回值是15个字节*****/
+    //float temprature;//摄氏度
+    quint16 ec;//电导 us/cm
+    //quint16 salinity;//盐度 mg/L
+    //quint16 tds;//总溶解固体 mg/L
+
+    /*********光照传感器--目前所用命令，返回值是7个字节***********/
+    quint32 light;
+
+    /*********PH传感器--目前所用命令，返回值是7个字节***********/
+    float ph_val;
 
 signals:
     void isDone(QByteArray tmp);//接收到完整的包头以后给主线程发送的信号--携带包头数据
@@ -64,7 +124,7 @@ private:
     unsigned int cnt_need;//还需要的字节数（只针对完整读取指定长度的数据包）
     unsigned int data_need;//每一个包的有效数据的总长度
     unsigned int cnt;//串口接收到的所有有效数据的字节数（针对读取图片的整个过程）
-    char debug ;
+    //char debug ;
 
     QByteArray read_data;//总的已读取的数据（只针对完整读取指定长度的数据包）
 

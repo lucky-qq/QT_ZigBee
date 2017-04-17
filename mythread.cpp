@@ -3,30 +3,80 @@
 #include <QTimer>
 #include  <QFileInfo>
 
+
 MyThread::MyThread(QObject *parent) : QObject(parent)
 {
     //记录读取状态相关变量的初始化
     cnt_read = 0;
     cnt_need = 0;
-    photo_state = BEGIN;//默认状态是开始读取图片（暂时没用到）
-    serial_state = READ_HDR;//默认状态是读取包头的状态
     data_need = 0;
-    node_id = 0;
-    node_type = 0;
     cnt = 0;
-    seqnb = 0;
-    FAIL_FLAG = false;//默认没有失败
-    pkt_cnt = 0;
+
     isStop = false;//默认是false--不退出子线程处理函数
     serial = new QSerialPort(this);
-    debug = 0;
-    timer = new QTimer(this);
-    connect(timer,&QTimer::timeout,this,&MyThread::readSerial);
-    timer->start(10);
+    timer = NULL;
+}
+
+//将QByteArray类型的数据转换为int类型
+int bytesToInt(QByteArray bytes) {
+    int addr = bytes[0] & 0x000000FF;
+    addr |= ((bytes[1] << 8) & 0x0000FF00);
+    addr |= ((bytes[2] << 16) & 0x00FF0000);
+    addr |= ((bytes[3] << 24) & 0xFF000000);
+    return addr;
+}
+unsigned int calc_crc16 (unsigned char *snd, unsigned char num)
+{
+    unsigned char i, j;
+    unsigned int c,crc=0xFFFF;
+    for(i = 0; i < num; i ++)
+    {
+        c = snd[i] & 0x00FF;
+        crc ^= c;
+        for(j = 0;j < 8; j ++)
+        {
+            if (crc & 0x0001)
+            {
+                crc>>=1;
+                crc^=0xA001;
+            }
+            else
+            {
+                crc>>=1;
+            }
+        }
+    }
+    return(crc);
+}
+void MyThread::sleep(int msec)
+{
+    QDateTime last = QDateTime::currentDateTime();
+    QDateTime now;
+    while (1)
+    {
+        now = QDateTime::currentDateTime();
+        if (last.msecsTo(now) >= msec)
+        {
+            break;
+        }
+    }
 }
 
 void MyThread::initSerial(QSerialPortInfo info)
 {
+
+
+    photo_state = BEGIN;//默认状态是开始读取图片（暂时没用到）
+    serial_state = READ_HDR;//默认状态是读取包头的状态
+
+    node_id = 0;
+    node_type = 0;
+
+    seqnb = 0;
+    FAIL_FLAG = false;//默认没有失败
+    pkt_cnt = 0;
+
+
 
     if(serial->isOpen())//先关闭
         serial->close();
@@ -37,18 +87,249 @@ void MyThread::initSerial(QSerialPortInfo info)
     serial->setParity(QSerialPort::NoParity);    //无奇偶校验
     serial->setStopBits(QSerialPort::OneStop);   //停止位
     serial->setFlowControl(QSerialPort::NoFlowControl);  //无控制
-
+    timer = new QTimer(this);
+    connect(timer,&QTimer::timeout,this,&MyThread::readSerial);
+    timer->start(10);
     //readSerial();//实际意义的子线程处理函数
+    qDebug() << "child thread 1:========================"<< QThread::currentThread() ;
 
 }
 
-//将QByteArray类型的数据转换为int类型
-int bytesToInt(QByteArray bytes) {
-    int addr = bytes[0] & 0x000000FF;
-    addr |= ((bytes[1] << 8) & 0x0000FF00);
-    addr |= ((bytes[2] << 16) & 0x00FF0000);
-    addr |= ((bytes[3] << 24) & 0xFF000000);
-    return addr;
+void MyThread::initUart485(QSerialPortInfo info)
+{
+
+    if(serial->isOpen())//先关闭
+        serial->close();
+    serial->setPort(info);//设置串口号--就是从下拉框选择的串口号
+    serial->open(QIODevice::ReadWrite);         //读写打开
+    serial->setBaudRate(QSerialPort::Baud9600);  //波特率
+    serial->setDataBits(QSerialPort::Data8); //数据位
+    serial->setParity(QSerialPort::NoParity);    //无奇偶校验
+    serial->setStopBits(QSerialPort::OneStop);   //停止位
+    serial->setFlowControl(QSerialPort::NoFlowControl);  //无控制
+    serial_state = READ_PH;
+    this->ec = 0;
+    this->light = 0;
+    this->ph_val = 0.0f;
+
+    timer = new QTimer(this);
+    connect(timer,&QTimer::timeout,this,&MyThread::beginRead);
+    timer->start(1000*5);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
+
+    qDebug() << "child thread 2:========================"<< QThread::currentThread() ;
+
+}
+void MyThread::beginRead()
+{
+    timer->stop();//关闭该定时器
+
+    get_PH_val(PH_DEV_ADDR);
+    serial_state = READ_PH;
+    sleep(2000);//每读取一个传感器后就延时2s，以便保持串口的同步操作
+
+    get_light_val(LIGHT_ADDR);
+    serial_state = READ_LIGHT;
+    sleep(2000);
+
+    get_conduct_val(CONDUCT_ADDR);
+    serial_state = READ_CONDUCT;
+    sleep(2000);
+
+}
+
+
+void MyThread::set_conduct_addr(unsigned char dev_addr,unsigned char addr)
+{
+    unsigned char cmd[8]={0};
+    cmd[0] = dev_addr;
+    cmd[1] = 0x06;
+
+    cmd[2] = 0x02;//0x0200
+    cmd[3] = 0x00;
+
+    cmd[4] = 0x00;
+    cmd[5] = addr;
+
+    unsigned int res = calc_crc16(cmd,6);
+    qDebug()<<QString("%1").arg(res,4,16,QLatin1Char('0'));
+
+    cmd[7] = res>>8;//0x1800
+    cmd[6] = (res & 0xFF);
+    serial->write((char *)cmd,8);
+
+}
+
+
+/*这里需要增加一个参数接收获取的设备地址*/
+void MyThread::get_conduct_addr(unsigned char dev_addr)
+{
+    unsigned char cmd[8]={0};
+    cmd[0] = dev_addr;
+    cmd[1] = 0x03;
+
+    cmd[2] = 0x02;//0x0200
+    cmd[3] = 0x00;
+
+    cmd[4] = 0x00;
+    cmd[5] = 0x01;
+
+    unsigned int res = calc_crc16(cmd,6);
+
+    qDebug()<<QString("%1").arg(res,4,16,QLatin1Char('0'));
+
+    cmd[7] = res>>8;//0x1800
+    cmd[6] = (res & 0xFF);
+
+    serial->write((char *)cmd,8);
+
+    unsigned char tmp_buf[16]={0};
+    unsigned char result_buf[16]={0};
+
+    if(this->read_needed_data(7,(char*)tmp_buf,(char*)result_buf)==7)
+    {
+
+    }
+
+}
+
+int MyThread::read_needed_data(int length,char *tmp_buf,char *result_buf)
+{
+    int cnt_read = 0;//已经读取到的总字节数
+    int cnt_need = length;//还需要的字节数（只针对完整读取指定长度的数据包）
+    int cnt_tmp = 0;//存放本次读取到的临时长度
+
+    while(1)
+    {
+
+        if(serial->bytesAvailable() >= 1 || serial->waitForReadyRead(1000))//有可读数据再去读
+        {
+            cnt_need = length - cnt_read;//更新当前还需要读取的字节数
+            cnt_tmp = serial->read(tmp_buf,cnt_need);
+            if(cnt_tmp > 0)//读取是否成功
+            {
+
+                memcpy(result_buf+cnt_read,tmp_buf,cnt_tmp);//每次都把数据累加到cmd_buf
+                cnt_read +=  cnt_tmp;
+                if(cnt_read == length)//是否读取了指定长度
+                {
+                    return cnt_read;
+                    //qDebug()<<"cnt_read == length";
+                    break;
+                }
+            }
+            else if(cnt_tmp == -1)//读串口失败
+            {
+                qDebug()<<"read err";
+                return -1;
+            }
+            continue;
+        }
+
+        qDebug()<<"no data";
+        break;
+    }
+    return 0;
+}
+
+void MyThread::get_conduct_val(unsigned char dev_addr)
+{
+    unsigned char cmd[8]={0};
+    cmd[0] = dev_addr;
+    cmd[1] = 0x04;
+
+    cmd[2] = 0x00;
+    cmd[3] = 0x00;
+
+    cmd[4] = 0x00;
+    cmd[5] = 0x05;
+
+    unsigned int crc = calc_crc16(cmd,6);
+
+    qDebug()<<"conduct"<<QString("%1").arg(crc,4,16,QLatin1Char('0'));
+
+    cmd[7] = crc>>8;
+    cmd[6] = (crc & 0xFF);
+
+    serial->write((char *)cmd,8);
+    unsigned char tmp_buf[16]={0};
+    unsigned char result_buf[16]={0};
+
+    if(this->read_needed_data(CONDUCT_LENGTH,(char*)tmp_buf,(char*)result_buf)==CONDUCT_LENGTH)
+    {
+        this->ec = ((result_buf[7] << 8) + result_buf[8]);
+        qDebug()<<"conduct: "<<ec;
+
+    }
+
+}
+
+/*命令是{0x02,0x03,0,0,0,0x01,0x84,0x39}*/
+void MyThread::get_PH_val(unsigned char dev_addr)
+{
+    unsigned char cmd[8]={0};
+    cmd[0] = 0x02;
+    cmd[1] = 0x03;
+
+    cmd[2] = 0x00;
+    cmd[3] = 0x00;
+
+    cmd[4] = 0x00;
+    cmd[5] = 0x01;
+
+    unsigned int crc = calc_crc16(cmd,6);
+
+    qDebug()<<"PH:"<<QString("%1").arg(crc,4,16,QLatin1Char('0'));
+
+    cmd[7] = crc>>8;
+    cmd[6] = (crc & 0xFF);
+
+    serial->write((char *)cmd,8);
+    unsigned char tmp_buf[16]={0};
+    unsigned char result_buf[16]={0};
+
+    if(this->read_needed_data(PH_DEV_LENGTH,(char*)tmp_buf,(char*)result_buf)==PH_DEV_LENGTH)
+    {
+        this->ph_val = ((result_buf[3] << 8) + result_buf[4])/100.0;
+
+        qDebug()<<"ph_val: "<<ph_val;
+
+    }
+}
+
+
+/*命令是{0x01,0x03,0,0,0,0x01,0x84,0x0A}*/
+void MyThread::get_light_val(unsigned char dev_addr)
+{
+    unsigned char cmd[8]={0};
+    cmd[0] = dev_addr;
+    cmd[1] = 0x03;
+
+    cmd[2] = 0x00;
+    cmd[3] = 0x00;
+
+    cmd[4] = 0x00;
+    cmd[5] = 0x01;
+
+    unsigned int crc = calc_crc16(cmd,6);
+
+    qDebug()<<"Light:"<<QString("%1").arg(crc,4,16,QLatin1Char('0'));
+
+    cmd[7] = crc>>8;
+    cmd[6] = (crc & 0xFF);
+
+    serial->write((char *)cmd,8);
+    unsigned char tmp_buf[16]={0};
+    unsigned char result_buf[16]={0};
+
+    if(this->read_needed_data(LIGHT_LENGTH,(char*)tmp_buf,(char*)result_buf)==LIGHT_LENGTH)
+    {
+        this->light = ((result_buf[3] << 8) + result_buf[4])*10;
+        qDebug()<<"light: "<<light;
+        for(int i = 0;i < 7;i++)
+        {
+            qDebug()<<result_buf[i];
+        }
+    }
 }
 
 //读取指定长度串口数据（实际不一定能读取指定的长度）
@@ -97,7 +378,7 @@ void MyThread::handleHead()
         FAIL_FLAG = true;//重复--读失败的标志置位--该数据包将不会写入图片文件
         qDebug()<<"seqnb err..********************************";
     }
-    else if(seqnb - seq_old > 1)//如果该数据包序号比上一个数据包序号大于等于2，表示中间丢了数据包
+    else if(seqnb - seq_old > 1 && seqnb !=1)//如果该数据包序号比上一个数据包序号大于等于2，表示中间丢了数据包
     {
         //虽然读取失败了，但是该数据包是需要写入图片文件的，所以失败标志复位--要写入该数据包到图片文件
         FAIL_FLAG = false;
@@ -141,9 +422,8 @@ void  MyThread::handlePhoto()
     //if(strcmp("end",str_tmp) == 0)
     if(read_data.contains("end"))//如果读取到的有效数据包含end--表示读取到图片结束
     {
-        if(dst.isOpen())//关闭图片文件
-            dst.close();
-        debug = 1;
+
+        //debug = 1;
 
         QFileInfo fi = QFileInfo(dst.fileName());
 
@@ -172,6 +452,8 @@ void  MyThread::handlePhoto()
         cnt = 0;//读取到的所有有效数据清零
         emit end();
 
+        if(dst.isOpen())//关闭图片文件
+            dst.close();
         return ;//直接返回--后面的没必要再执行了
     }
 
@@ -258,12 +540,11 @@ void MyThread::readSerial()
     {
 
 #if 1
-        //while(this->serial->waitForReadyRead(10))
+
         //一定要调用这个函数，否则串口不会发出readyRead信号（或者说即使发了也没有去捕获），也就什么都不能读取了
        //while(this->serial->waitForReadyRead(8) == false);
         //if(serial->bytesAvailable() < 1 && debug == 0){
             //qDebug() << "子线程号：========================"<< QThread::currentThread() ;
-            //QThread::currentThread() ;
         //}
 
         if(serial->bytesAvailable() >= 1 || serial->waitForReadyRead(8))//有可读数据再去读
@@ -323,6 +604,104 @@ void MyThread::readSerial()
     }
 }
 
+//读取串口数据--真正子线程处理函数
+void MyThread::readUart485()
+{
+    int ret = 0;//记录每次实际读取的字节数
+
+    {
+        if(serial->bytesAvailable() < 1 )
+             qDebug() << "子线程号：========================"<< QThread::currentThread() ;
+        if(serial->bytesAvailable() >= 1)//有可读数据再去读
+        {
+            switch(serial_state)
+            {
+
+            case READ_PH:
+                qDebug()<<"in";
+                ret = readFrameData(PH_DEV_LENGTH);//目标是读取PH_DEV_LENGTH个字节的数据
+                if(ret == -1)//读取错误
+                {
+                    return;
+                }
+
+                if(PH_DEV_LENGTH == cnt_read)//已读取到的字节数和目标长度相等
+                {
+                    //将记录读取状态的相关变量清零
+                    cnt_read = 0;
+                    cnt_need = 0;
+
+                    //读完头部数据下一个状态应该是读取有效数据--切换状态
+
+                    int high = bytesToInt(read_data.mid(3,1));
+                    int low = bytesToInt(read_data.mid(4,1));
+                    this->ph_val = ((high << 8) + low)/100.0;
+                    qDebug()<<"ph_val: "<<ph_val;
+                    read_data.clear();
+                }
+
+                break;
+
+            case READ_LIGHT:
+                ret = readFrameData(LIGHT_LENGTH);//目标是读取LIGHT_LENGTH个字节的数据
+                if(ret == -1)//读取错误
+                {
+                    return;
+                }
+
+                if(LIGHT_LENGTH == cnt_read)
+                {
+                    //将记录读取状态的相关变量清零
+                    cnt_read = 0;
+                    cnt_need = 0;
+
+                    //读完头部数据下一个状态应该是读取有效数据--切换状态
+
+                    int high = bytesToInt(read_data.mid(3,1));
+                    int low = bytesToInt(read_data.mid(4,1));
+                    this->light = ((high << 8) + low)*10;
+                    qDebug()<<"light: "<<light;
+
+                    //get_conduct_val(CONDUCT_ADDR);
+                    //serial_state = READ_CONDUCT;
+                    read_data.clear();
+                }
+                break;
+            case READ_CONDUCT://读有效数据
+                ret = readFrameData(CONDUCT_LENGTH);//目标是读取CONDUCT_LENGTH个字节的数据
+                if(ret == -1)//读取错误
+                {
+                    return;
+                }
+
+                if(CONDUCT_LENGTH == cnt_read)
+                {
+                    //将记录读取状态的相关变量清零
+                    cnt_read = 0;
+                    cnt_need = 0;
+
+                    //读完头部数据下一个状态应该是读取有效数据--切换状态
+
+                    int high = bytesToInt(read_data.mid(7,1));
+                    int low = bytesToInt(read_data.mid(8,1));
+                    this->ec = ((high << 8) + low);
+                    qDebug()<<"ec: "<<ec;
+
+//                    get_light_val(LIGHT_ADDR);
+//                    serial_state = READ_LIGHT;
+
+                    read_data.clear();
+                }
+                break;
+
+            default:
+                break;
+
+            }
+        }
+    }
+}
+
 void MyThread::setFlag(bool flag)
 {
     isStop = flag;
@@ -330,7 +709,8 @@ void MyThread::setFlag(bool flag)
     //5. 子线程中声明、初始化的对象在子线程中析构，
     //利用deleteLater该函数可很好解决多线程释放对象
     serial->deleteLater();
-    timer->deleteLater();
+    if(timer != NULL)
+        timer->deleteLater();
     qDebug() << "stop";
 }
 
