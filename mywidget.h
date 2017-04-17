@@ -12,6 +12,9 @@
 #include "qcwmeter.h"
 #include "qcwthermometer.h"
 #include "mydht.h"
+#include "customtablemodel.h"
+#include "tablewidget.h"
+#include <QSqlDatabase>
 
 #define NO_SERIAL       0
 #define ONLY_ZIGBEE     1
@@ -34,6 +37,7 @@ public:
     void detectSerial();//探测系统可用的串口列表
     void setDHTLayout(int num=16);
     void set_one_page(MyDHT * dht_items,QWidget * widget,int num);
+    void set_chart1_layout();
 
 signals:
     void load_image(const QString&  file_name);

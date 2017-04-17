@@ -4,6 +4,8 @@
 #include <QDir>
 #include <QDebug>
 #include "frmmain.h"
+#include "tablewidget.h"
+#include "customtablemodel.h"
 
 
 MyWidget::MyWidget(QWidget *parent) :
@@ -112,7 +114,8 @@ MyWidget::MyWidget(QWidget *parent) :
     connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
     detectSerial();//探测当前系统可用的串口列表
     setDHTLayout(15);
-    ui->stackedWidget->setCurrentIndex(0);
+    set_chart1_layout();
+    ui->stackedWidget->setCurrentIndex(4);
     qDebug() << "main thread:========================"<< QThread::currentThread() ;
 
 }
@@ -192,6 +195,22 @@ void MyWidget::setDHTLayout(int num)
         (dht_items+i)->thermometer->setValue(10+2*i);
     }
 
+}
+
+
+void MyWidget::set_chart1_layout()
+{
+    TableWidget *chart1 = new TableWidget ();
+    QVBoxLayout * main_layout = new QVBoxLayout();
+    headtitle *dht_title3 = new headtitle(QString("://src_img/g_left.png"),QString("PH值"),QString("://src_img/p_right.png"),0);
+
+    main_layout->addWidget(dht_title3);
+    main_layout->addWidget(chart1);
+    main_layout->setMargin(0);
+    main_layout->setSpacing(0);
+    ui->Qchart1->setLayout(main_layout);
+
+    qDebug()<<QSqlDatabase::drivers();
 }
 
 void MyWidget::dealClose()

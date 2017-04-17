@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
-QT       += serialport
+QT       += serialport charts sql
 CONFIG += qwt
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -36,7 +36,9 @@ SOURCES += main.cpp\
     qcwthermometer.cpp \
     qcwmeter.cpp \
     mydht.cpp \
-    mykeyboard.cpp
+    mykeyboard.cpp \
+    customtablemodel.cpp \
+    tablewidget.cpp
 
 HEADERS  += mywidget.h \
     searchfilter.h \
@@ -48,7 +50,9 @@ HEADERS  += mywidget.h \
     qcwthermometer.h \
     qcwmeter.h \
     mydht.h \
-    mykeyboard.h
+    mykeyboard.h \
+    customtablemodel.h \
+    tablewidget.h
 
 FORMS    += mywidget.ui
 

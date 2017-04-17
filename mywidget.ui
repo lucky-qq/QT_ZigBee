@@ -43,7 +43,7 @@
     </font>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>4</number>
    </property>
    <widget class="QWidget" name="LoginPage">
     <property name="sizePolicy">
@@ -429,6 +429,7 @@
     </property>
    </widget>
    <widget class="QWidget" name="DHTPage2"/>
+   <widget class="QWidget" name="Qchart1"/>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
