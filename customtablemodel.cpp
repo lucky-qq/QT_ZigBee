@@ -34,6 +34,7 @@
 #include <QtGui/QColor>
 #include <QTimer>
 #include <QDebug>
+#include <QDateTime>
 
 CustomTableModel::CustomTableModel(QObject *parent) :
     QAbstractTableModel(parent)
@@ -42,22 +43,16 @@ CustomTableModel::CustomTableModel(QObject *parent) :
 
     m_columnCount = 2;
     m_rowCount = 96;
-
+    QDateTime  tmpDate = QDateTime::currentDateTime();
     // m_data
     for (int i = 0; i < m_rowCount; i++) {
-        QVector<qreal>* dataVec = new QVector<qreal>(m_columnCount);
-        for (int k = 0; k < dataVec->size(); k++) {
-            if (k % 2 == 0)
-                dataVec->replace(k, i+1);
-            else
-                dataVec->replace(k, 7);
-        }
-        m_data.append(dataVec);
+
+        m_data.insert(tmpDate.addSecs((60*15)*i),7);
     }
 
-    QTimer * timer = new QTimer();
-    connect(timer,&QTimer::timeout,this,&CustomTableModel::UpdateData);
-    timer->start(5000);
+    //QTimer * timer = new QTimer();
+    //connect(timer,&QTimer::timeout,this,&CustomTableModel::UpdateData);
+    //timer->start(5000);
 
 }
 
@@ -69,8 +64,8 @@ void CustomTableModel::UpdateData()
         //for (int k = 0; k < 2; k++) {
             //QModelIndex index = this->index(i, 0, QModelIndex());
             //setData(index,  QVariant(i+1));
-            QModelIndex index2 = this->index(i, 1, QModelIndex());
-            setData(index2,  QVariant(7.0+inc));
+            //QModelIndex index2 = this->index(i, 1, QModelIndex());
+            //setData(index2,  QVariant(7.0+inc));
             //setData(index(i,1,QModelIndex()),  QVariant(7), Qt::DisplayRole);
         //}
             qDebug()<<"fuck";
@@ -119,12 +114,40 @@ QVariant CustomTableModel::headerData(int section, Qt::Orientation orientation, 
     }
 }
 
+QDateTime CustomTableModel::currencyAt(int offset) const
+{
+    return (m_data.begin() + offset).key();
+}
+
 QVariant CustomTableModel::data(const QModelIndex &index, int role) const
 {
+    QDateTime rowDate;
     if (role == Qt::DisplayRole) {
-        return m_data[index.row()]->at(index.column());
+        switch(index.column())
+        {
+        case 0:
+            rowDate = currencyAt(index.row());
+            return rowDate;
+            break;
+        case 1:
+            rowDate = currencyAt(index.row());
+            return m_data.value(rowDate);
+            break;
+
+        }
     } else if (role == Qt::EditRole) {
-        return m_data[index.row()]->at(index.column());
+        switch(index.column())
+        {
+        case 0:
+            rowDate = currencyAt(index.row());
+            return rowDate;
+            break;
+        case 1:
+            rowDate = currencyAt(index.row());
+            return m_data.value(rowDate);
+            break;
+
+        }
     } else if (role == Qt::BackgroundRole) {
         foreach (QRect rect, m_mapping) {
             if (rect.contains(index.column(), index.row()))
@@ -139,7 +162,7 @@ QVariant CustomTableModel::data(const QModelIndex &index, int role) const
 bool CustomTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole) {
-        m_data[index.row()]->replace(index.column(), value.toDouble());
+        //m_data[index.row()]->replace(index.column(), value.toDouble());
         emit dataChanged(index, index);
         return true;
     }

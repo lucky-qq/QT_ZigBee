@@ -38,6 +38,8 @@
 #include <QtWidgets/QHeaderView>
 #include <QDateTimeAxis>
 #include <QBarCategoryAxis>
+#include <QValueAxis>
+#include <QSplineSeries>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -58,18 +60,21 @@ TableWidget::TableWidget(QWidget *parent)
     tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
 
+
     //connect(model, &CustomTableModel::updateCount, this, &QTableView::updateCount);
     //! [2]
 
     //! [3]
     QChart *chart = new QChart;
     chart->setAnimationOptions(QChart::AllAnimations);
+    chart->legend()->hide();
     //! [3]
 
     // series 1
     //! [4]
     QLineSeries *series = new QLineSeries;
-    series->setName("Line 1");
+    //series->setName("Line 1");
+
 
     QVXYModelMapper *mapper = new QVXYModelMapper(this);
     mapper->setXColumn(0);
@@ -116,16 +121,57 @@ TableWidget::TableWidget(QWidget *parent)
     //categories << "April" << "May" << "June" << "July" << "August";
     //QDateTimeAxis *axis = new QDateTimeAxis();
     //axis->append(categories);
-    QStringList categories;
-    categories << "Jan" << "Feb" << "Mar" << "Apr" << "May" << "Jun";
-    QBarCategoryAxis *axis = new QBarCategoryAxis();
-    axis->append(categories);
-    chart->createDefaultAxes();
-    chart->setAxisX(axis, series);
-    //chart->setAxisX(axis, series);
+
+
+//    QStringList categories;
+//    categories << "08:00" << "Feb" << "Mar" << "Apr" << "May" << "Jun";
+//    QBarCategoryAxis *axis = new QBarCategoryAxis();
+//    axis->append(categories);
+      //chart->createDefaultAxes();
+//    chart->setAxisX(axis, series);
+
+
+    QDateTimeAxis *axisX = new QDateTimeAxis;
+    axisX->setFormat("h:m");
+    chart->setAxisX(axisX, series);
+
+    QValueAxis *axisY = new QValueAxis;
+    axisY->setRange(4, 9);
+    //axisY->setTitleText("Y Axis");
+    axisY->setLabelFormat("%.2f");
+    axisY->setGridLineVisible(true);
+    axisY->setLabelsVisible(true);
+    chart->setAxisY(axisY, series);
+
+
+    //chart->addAxis(axisX, Qt::AlignBottom);
+    //series->attachAxis(axisX);
+
+//    QValueAxis *axisY = new QValueAxis;
+//    axisY->setLabelFormat("%i");
+//    //axisY->setRange(4,9);
+//    //axisY->setTickCount();
+//    chart->addAxis(axisY, Qt::AlignLeft);
+//    series->attachAxis(axisY);
+
+#if 0
+    QDateTimeAxis *axisX = new QDateTimeAxis;
+    axisX->setFormat("dd-MM");
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+
+    QValueAxis *axisY = new QValueAxis;
+    axisY->setLabelFormat("%i");
+    //axisY->setTitleText("PH值");
+    axisY->setRange(4,9);
+    //axisY->setTickCount();
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+#endif
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setMinimumSize(640, 480);
+
     //! [8]
 
     //! [9]

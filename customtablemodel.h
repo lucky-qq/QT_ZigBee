@@ -33,6 +33,7 @@
 #include <QtCore/QAbstractTableModel>
 #include <QtCore/QHash>
 #include <QtCore/QRect>
+#include <QDateTime>
 
 class CustomTableModel : public QAbstractTableModel
 {
@@ -53,8 +54,10 @@ public:
     void clearMapping() { m_mapping.clear(); }
 
     void UpdateData();
+    QDateTime currencyAt(int offset) const;
 private:
-    QList<QVector<qreal> * > m_data;
+    //QList<QMap<QDateTime,qreal>> m_data;
+    QMap<QDateTime,qreal> m_data;
     QHash<QString, QRect> m_mapping;
     int m_columnCount;
     int m_rowCount;
