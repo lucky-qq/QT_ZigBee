@@ -38,12 +38,16 @@ public:
     void setDHTLayout(int num=16);
     void set_one_page(MyDHT * dht_items,QWidget * widget,int num);
     void set_chart1_layout();
+    void set_chart2_layout();
+    void set_chart3_layout();
 
 signals:
     void load_image(const QString&  file_name);
     void initUart(QSerialPortInfo info);//发送给子线程的串口初始化信号
     void initUart485(QSerialPortInfo info);//发送给子线程的串口初始化信号
 
+public:
+    TableWidget *chart1;
 
 
 private slots:

@@ -40,6 +40,7 @@
 #include <QBarCategoryAxis>
 #include <QValueAxis>
 #include <QSplineSeries>
+#include <QDebug>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -49,7 +50,7 @@ TableWidget::TableWidget(QWidget *parent)
     // create simple model for storing data
     // user's table data model
     //! [1]
-    CustomTableModel *model = new CustomTableModel;
+    model = new CustomTableModel;
     //! [1]
 
     //! [2]
@@ -72,15 +73,14 @@ TableWidget::TableWidget(QWidget *parent)
 
     // series 1
     //! [4]
-    QLineSeries *series = new QLineSeries;
-    //series->setName("Line 1");
-
+    QSplineSeries *series = new QSplineSeries();
+    //splineSeries->setName("spline");
 
     QVXYModelMapper *mapper = new QVXYModelMapper(this);
     mapper->setXColumn(0);
     mapper->setYColumn(1);
-    mapper->setFirstRow(1);
-    mapper->setRowCount(10);
+    mapper->setFirstRow(0);
+    mapper->setRowCount(96);
     mapper->setSeries(series);
     mapper->setModel(model);
 
@@ -96,78 +96,16 @@ TableWidget::TableWidget(QWidget *parent)
     model->addMapping(seriesColorHex, QRect(0, 0, 2, model->rowCount()));
     //! [5]
 
-
-//    // series 2
-//    //! [6]
-//    series = new QLineSeries;
-//    series->setName("Line 2");
-
-//    mapper = new QVXYModelMapper(this);
-//    mapper->setXColumn(2);
-//    mapper->setYColumn(3);
-//    mapper->setSeries(series);
-//    mapper->setModel(model);
-//    chart->addSeries(series);
-//    //! [6]
-
-//    //! [7]
-//    // get the color of the series and use it for showing the mapped area
-//    seriesColorHex = "#" + QString::number(series->pen().color().rgb(), 16).right(6).toUpper();
-//    model->addMapping(seriesColorHex, QRect(2, 0, 2, model->rowCount()));
-//    //! [7]
-
-    //! [8]
-    //QStringList categories;
-    //categories << "April" << "May" << "June" << "July" << "August";
-    //QDateTimeAxis *axis = new QDateTimeAxis();
-    //axis->append(categories);
-
-
-//    QStringList categories;
-//    categories << "08:00" << "Feb" << "Mar" << "Apr" << "May" << "Jun";
-//    QBarCategoryAxis *axis = new QBarCategoryAxis();
-//    axis->append(categories);
-      //chart->createDefaultAxes();
-//    chart->setAxisX(axis, series);
-
-
-    QDateTimeAxis *axisX = new QDateTimeAxis;
+    axisX = new QDateTimeAxis;
     axisX->setFormat("h:m");
     chart->setAxisX(axisX, series);
 
-    QValueAxis *axisY = new QValueAxis;
+    axisY = new QValueAxis;
     axisY->setRange(4, 9);
-    //axisY->setTitleText("Y Axis");
     axisY->setLabelFormat("%.2f");
-    axisY->setGridLineVisible(true);
-    axisY->setLabelsVisible(true);
     chart->setAxisY(axisY, series);
 
 
-    //chart->addAxis(axisX, Qt::AlignBottom);
-    //series->attachAxis(axisX);
-
-//    QValueAxis *axisY = new QValueAxis;
-//    axisY->setLabelFormat("%i");
-//    //axisY->setRange(4,9);
-//    //axisY->setTickCount();
-//    chart->addAxis(axisY, Qt::AlignLeft);
-//    series->attachAxis(axisY);
-
-#if 0
-    QDateTimeAxis *axisX = new QDateTimeAxis;
-    axisX->setFormat("dd-MM");
-    chart->addAxis(axisX, Qt::AlignBottom);
-    series->attachAxis(axisX);
-
-    QValueAxis *axisY = new QValueAxis;
-    axisY->setLabelFormat("%i");
-    //axisY->setTitleText("PH值");
-    axisY->setRange(4,9);
-    //axisY->setTickCount();
-    chart->addAxis(axisY, Qt::AlignLeft);
-    series->attachAxis(axisY);
-#endif
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setMinimumSize(640, 480);
@@ -183,4 +121,10 @@ TableWidget::TableWidget(QWidget *parent)
     mainLayout->setColumnStretch(0, 0);
     setLayout(mainLayout);
     //! [9]
+}
+
+void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> &tmp)
+{
+   model->UpdateShowPH(tmp);
+   qDebug()<<"signal ..............................";
 }

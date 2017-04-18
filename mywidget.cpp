@@ -8,6 +8,8 @@
 #include "customtablemodel.h"
 
 
+typedef QMap<QDateTime,qreal>&  PH_MAP;
+
 MyWidget::MyWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MyWidget)
@@ -103,6 +105,8 @@ MyWidget::MyWidget(QWidget *parent) :
     uart485_exist = 0;
 
 
+
+
     //对于子线程的东西（将被移入子线程的自定义对象以及线程对象），最好定义为指针
     myT = NULL;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
     thread = NULL;//初始化子线程线程
@@ -110,12 +114,19 @@ MyWidget::MyWidget(QWidget *parent) :
     uart485_module = NULL;
     uart485_thread = NULL;
 
+    chart1 = new TableWidget ();
+    uart485_module = new MyThread;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
+    qRegisterMetaType<PH_MAP>("PH_MAP");
+    connect(uart485_module,&MyThread::DynamicShow,chart1,&TableWidget::updateMVC_PH,Qt::QueuedConnection);
+
     //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
     connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
     detectSerial();//探测当前系统可用的串口列表
     setDHTLayout(15);
     set_chart1_layout();
-    ui->stackedWidget->setCurrentIndex(4);
+    set_chart2_layout();
+    set_chart3_layout();
+    ui->stackedWidget->setCurrentIndex(0);
     qDebug() << "main thread:========================"<< QThread::currentThread() ;
 
 }
@@ -200,17 +211,48 @@ void MyWidget::setDHTLayout(int num)
 
 void MyWidget::set_chart1_layout()
 {
-    TableWidget *chart1 = new TableWidget ();
+    chart1->axisY->setRange(0,10);
     QVBoxLayout * main_layout = new QVBoxLayout();
-    headtitle *dht_title3 = new headtitle(QString("://src_img/g_left.png"),QString("PH值"),QString("://src_img/p_right.png"),0);
-
-    main_layout->addWidget(dht_title3);
+    headtitle *chart_title = new headtitle(QString("://src_img/g_left.png"),QString("PH值"),QString("://src_img/p_right.png"),0);
+    connect(chart_title,&headtitle::left,this,&MyWidget::change_left);
+    connect(chart_title,&headtitle::right,this,&MyWidget::change_right);
+    main_layout->addWidget(chart_title);
     main_layout->addWidget(chart1);
     main_layout->setMargin(0);
     main_layout->setSpacing(0);
     ui->Qchart1->setLayout(main_layout);
 
     qDebug()<<QSqlDatabase::drivers();
+}
+void MyWidget::set_chart2_layout()
+{
+    TableWidget *chart2 = new TableWidget ();
+    chart2->axisY->setRange(0,200000);
+    QVBoxLayout * main_layout = new QVBoxLayout();
+    headtitle *chart_title = new headtitle(QString("://src_img/g_left.png"),QString("光照强度"),QString("://src_img/p_right.png"),0);
+    connect(chart_title,&headtitle::left,this,&MyWidget::change_left);
+    connect(chart_title,&headtitle::right,this,&MyWidget::change_right);
+    main_layout->addWidget(chart_title);
+    main_layout->addWidget(chart2);
+    main_layout->setMargin(0);
+    main_layout->setSpacing(0);
+    ui->Qchart2->setLayout(main_layout);
+
+}
+void MyWidget::set_chart3_layout()
+{
+    TableWidget *chart3 = new TableWidget ();
+    chart3->axisY->setRange(0,10000);
+    QVBoxLayout * main_layout = new QVBoxLayout();
+    headtitle *dht_title = new headtitle(QString("://src_img/g_left.png"),QString("电导率"),QString("://src_img/p_right.png"),0);
+    connect(dht_title,&headtitle::left,this,&MyWidget::change_left);
+    connect(dht_title,&headtitle::right,this,&MyWidget::change_right);
+    main_layout->addWidget(dht_title);
+    main_layout->addWidget(chart3);
+    main_layout->setMargin(0);
+    main_layout->setSpacing(0);
+    ui->Qchart3->setLayout(main_layout);
+
 }
 
 void MyWidget::dealClose()
@@ -359,9 +401,11 @@ void MyWidget::detectSerial()
                     serial->close();
                 uart485_exist = 1;
 
-                uart485_module = new MyThread;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
+
+
                 uart485_thread = new QThread(this);//初始化子线程线程
                 uart485_module->moveToThread(uart485_thread);//将自定义对象移交给子线程，从此子线程控制他的成员函数
+
 
                 //启动子线程，但是没有启动真正的子线程处理函数，
                 //只是让子线程对象开始监控移交给他的相关对象

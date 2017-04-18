@@ -31,13 +31,25 @@
 #define TABLEWIDGET_H
 
 #include <QtWidgets/QWidget>
+#include <QDateTimeAxis>
+#include <QValueAxis>
+#include "customtablemodel.h"
 
+QT_CHARTS_USE_NAMESPACE
 class TableWidget : public QWidget
 {
     Q_OBJECT
 
+signals:
+
+
 public:
+    void updateMVC_PH(QMap<QDateTime,qreal>& tmp);
+    CustomTableModel *model;
     TableWidget(QWidget *parent = 0);
+    QDateTimeAxis *axisX;
+    QValueAxis *axisY;
+
 };
 
 #endif // TABLEWIDGET_H

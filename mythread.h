@@ -13,6 +13,9 @@
 #include <QPixmap>
 #include <QTimer>
 #include <QDateTime>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
 
 
 //一个包的长度信息
@@ -49,6 +52,16 @@
 #define READ_LIGHT      0x02
 #define READ_CONDUCT    0x03
 
+
+#define PLOT_NUM  96
+
+//QString select_max_sql = "select max(id) from PH";
+//QString update_sql = "update student set name = :name where id = :id";
+//QString select_sql = "select id, name from student";
+
+//QString delete_sql = "delete from student where id = ?";
+//QString clear_sql = "delete from student";
+
 class MyThread : public QObject
 {
     Q_OBJECT
@@ -60,6 +73,11 @@ public:
     void readUart485();
     void beginRead();
     void setFlag(bool flag);//更新isStop标志
+
+
+    void updateTablePH(QString str);
+    void updateShowPH(QString str);
+    void initShowPH();
 
     //读取指定长度的数据，但是返回的是本次读取到的实际字节数
     //实际读取的字节数可能比length小
@@ -83,6 +101,7 @@ public:
      * PH传感器操作函数
     *************************/
     void get_PH_val(unsigned char dev_addr);
+    void updateOneDay();
 
 
     /*************************
@@ -103,11 +122,17 @@ public:
 
     /*********PH传感器--目前所用命令，返回值是7个字节***********/
     float ph_val;
+    QSqlDatabase database;
+    QMap<QDateTime,qreal> ph_map;
 
+
+    /*date timestamp not null default (datetime('now','localtime'))*/
 signals:
     void isDone(QByteArray tmp);//接收到完整的包头以后给主线程发送的信号--携带包头数据
     void end();
     void ImageOK(const QString& picture_path);
+    void DynamicShow(QMap<QDateTime,qreal> &ph_map);
+
 
 public slots:
 

@@ -43,48 +43,49 @@ CustomTableModel::CustomTableModel(QObject *parent) :
 
     m_columnCount = 2;
     m_rowCount = 96;
-    QDateTime  tmpDate = QDateTime::currentDateTime();
-    // m_data
-    for (int i = 0; i < m_rowCount; i++) {
+}
 
-        m_data.insert(tmpDate.addSecs((60*15)*i),7);
-    }
+void CustomTableModel::UpdateShowPH(QMap<QDateTime,qreal>& m_data)
+{
+    //this->m_data.clear();
+    qDebug()<<"model in";
+    this->m_data = m_data;
+    qDebug()<<"into CustomTableModel::UpdateShowPH ";
+//    for (int i = 0; i <m_rowCount; i++) {
+//            QModelIndex index = this->index(i, 0, QModelIndex());
+//            emit dataChanged(index, index);
+//            QModelIndex index2 = this->index(i, 1, QModelIndex());
+//            emit dataChanged(index2, index2);
+//    }
+    //reset();
 
-    //QTimer * timer = new QTimer();
-    //connect(timer,&QTimer::timeout,this,&CustomTableModel::UpdateData);
-    //timer->start(5000);
-
+     qDebug()<<"model out";
 }
 
 void CustomTableModel::UpdateData()
 {
     static float inc = 0.1;
     static int flag = 0;
+    m_data.clear();
+    QDateTime  tmpDate = QDateTime::currentDateTime();
     for (int i = 0; i <m_rowCount; i++) {
-        //for (int k = 0; k < 2; k++) {
-            //QModelIndex index = this->index(i, 0, QModelIndex());
-            //setData(index,  QVariant(i+1));
-            //QModelIndex index2 = this->index(i, 1, QModelIndex());
-            //setData(index2,  QVariant(7.0+inc));
-            //setData(index(i,1,QModelIndex()),  QVariant(7), Qt::DisplayRole);
-        //}
-            qDebug()<<"fuck";
+            m_data.insert(tmpDate.addSecs((60*15)*i),6.5+inc);
 
+            QModelIndex index = this->index(i, 0, QModelIndex());
+            emit dataChanged(index, index);
+            QModelIndex index2 = this->index(i, 1, QModelIndex());
+            emit dataChanged(index2, index2);
+
+            if(inc >= 2.5)
+                flag = 1;
+            else if(inc <= -2.5)
+                flag = 0;
+
+            if(flag == 0)
+                inc = inc +0.1;
+            else if(flag == 1)
+                inc  = inc -0.1;
     }
-
-
-    if(inc >= 0.5)
-        flag = 1;
-    else if(inc <= -0.5)
-        flag = 0;
-
-    if(flag == 0)
-        inc = inc +0.1;
-    else if(flag == 1)
-        inc  = inc -0.1;
-    qDebug()<<"hello";
-    //emit updateCount(this->rowCount(QModelIndex()));
-
 }
 
 int CustomTableModel::rowCount(const QModelIndex &parent) const
@@ -162,7 +163,9 @@ QVariant CustomTableModel::data(const QModelIndex &index, int role) const
 bool CustomTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole) {
-        //m_data[index.row()]->replace(index.column(), value.toDouble());
+        QDateTime rowDate;
+        rowDate = currencyAt(index.row());
+        m_data[rowDate] = value.toDouble();
         emit dataChanged(index, index);
         return true;
     }

@@ -1,8 +1,8 @@
 #include "mythread.h"
 #include <QDateTime>
 #include <QTimer>
-#include  <QFileInfo>
-
+#include <QFileInfo>
+#include <QSqlDatabase>
 
 MyThread::MyThread(QObject *parent) : QObject(parent)
 {
@@ -90,6 +90,7 @@ void MyThread::initSerial(QSerialPortInfo info)
     timer = new QTimer(this);
     connect(timer,&QTimer::timeout,this,&MyThread::readSerial);
     timer->start(10);
+
     //readSerial();//实际意义的子线程处理函数
     qDebug() << "child thread 1:========================"<< QThread::currentThread() ;
 
@@ -112,16 +113,18 @@ void MyThread::initUart485(QSerialPortInfo info)
     this->light = 0;
     this->ph_val = 0.0f;
 
+    sleep(5000);
+    initShowPH();
     timer = new QTimer(this);
     connect(timer,&QTimer::timeout,this,&MyThread::beginRead);
     timer->start(1000*5);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
-
+    //updateTable("ph");
     qDebug() << "child thread 2:========================"<< QThread::currentThread() ;
 
 }
 void MyThread::beginRead()
 {
-    timer->stop();//关闭该定时器
+    //timer->stop();//关闭该定时器
 
     get_PH_val(PH_DEV_ADDR);
     serial_state = READ_PH;
@@ -135,8 +138,24 @@ void MyThread::beginRead()
     serial_state = READ_CONDUCT;
     sleep(2000);
 
+    QDateTime  tmpDate = QDateTime::currentDateTime();
+
+    ph_map.insert(tmpDate,ph_val);
+    updateTablePH("ph");
+    if(ph_map.count() == PLOT_NUM)
+    {
+        ph_map.clear();
+        updateOneDay();
+    }
+
+    updateShowPH("ph");
+
 }
 
+void MyThread::updateOneDay()
+{
+
+}
 
 void MyThread::set_conduct_addr(unsigned char dev_addr,unsigned char addr)
 {
@@ -713,6 +732,154 @@ void MyThread::setFlag(bool flag)
         timer->deleteLater();
     qDebug() << "stop";
 }
+
+void MyThread::initShowPH()
+{
+    //int need_cnt = (PLOT_NUM -ph_map.count());
+    updateShowPH("ph");
+    emit DynamicShow(ph_map);
+}
+
+void MyThread::updateShowPH(QString str)
+{
+    database = QSqlDatabase::addDatabase("QSQLITE");
+    database.setDatabaseName("husky.db");
+    database.setUserName("root");
+    database.setPassword("123456");
+
+    QDateTime current_date = QDateTime::currentDateTime();
+    //QString yesterday = current_date.addDays(0).toString("HH:MM:SS");
+
+    QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
+    QString select_all_PH = QString("select * from %1 order by date desc limit 0,96").arg(str);
+    //QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
+
+    if(!database.open())
+    {
+        qDebug()<<database.lastError();
+        qFatal("failed to connect.") ;
+    }
+    else
+    {
+        QSqlQuery sql_query;
+        qDebug()<<"opend-----";
+        sql_query.prepare(create_PH);
+        if(!sql_query.exec())
+        {
+            qDebug()<<sql_query.lastError()<<"err 01 ";
+        }
+        else
+        {
+            qDebug()<<"table created!";
+
+        }
+
+        //查询所有数据
+        sql_query.prepare(select_all_PH);
+        if(!sql_query.exec())
+        {
+            qDebug()<<sql_query.lastError()<<"err 03 ";;
+        }
+        else
+        {
+            qDebug()<<"table select!";
+            QMap<QDateTime,qreal> tmp_map;
+            tmp_map.clear();
+            while(sql_query.next())
+            {
+                int id = sql_query.value(0).toInt();
+                QDateTime date = sql_query.value(1).toDateTime();
+                QString str = date.toLocalTime().toString("h:m");
+                qreal var = sql_query.value(2).toDouble();
+                tmp_map.insert(date,var);
+                //qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(str).arg(var);
+                //qDebug()<<QString("date:%1    var:%2").arg(str).arg(var);
+            }
+
+            emit DynamicShow(tmp_map);
+            qDebug()<<"emit ..............................";
+        }
+    }
+    database.close();
+}
+
+void MyThread::updateTablePH(QString str)
+{
+    database = QSqlDatabase::addDatabase("QSQLITE");
+    database.setDatabaseName("husky.db");
+    database.setUserName("root");
+    database.setPassword("123456");
+    static int primary_key = 0;
+
+    QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
+    //QString select_all_PH = QString("select * from %1").arg(str);
+    QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
+
+
+    if(!database.open())
+    {
+        qDebug()<<database.lastError();
+        qFatal("failed to connect.") ;
+    }
+    else
+    {
+        //QSqlQuery类提供执行和操作的SQL语句的方法。
+        //可以用来执行DML（数据操作语言）语句，如SELECT、INSERT、UPDATE、DELETE，
+        //以及DDL（数据定义语言）语句，例如CREATE TABLE。
+        //也可以用来执行那些不是标准的SQL的数据库特定的命令。
+        QSqlQuery sql_query;
+        qDebug()<<"opend-----";
+        sql_query.prepare(create_PH);
+        if(!sql_query.exec())
+        {
+            qDebug()<<sql_query.lastError()<<"err 01 ";
+        }
+        else
+        {
+            qDebug()<<"table created!";
+
+        }
+
+        sql_query.prepare(insert_PH);
+
+        QVariantList  vars;
+        QVariantList  ids;
+#if 0
+        for(int i = 100;i < 96*28;i++)
+        {
+            ids.append(i+1);
+
+        }
+        for(int i = 100;i < 96*28;i++)
+        {
+            vars.append(7.5);
+
+        }
+#else
+
+        if(primary_key >= 96*31)
+            primary_key =0;
+
+         primary_key++;
+        ids.append(primary_key);
+        vars.append(ph_val);
+        sql_query.addBindValue(ids);
+        sql_query.addBindValue(vars);
+#endif
+        if(!sql_query.execBatch())
+        {
+            qDebug()<<sql_query.lastError();
+        }
+        else
+        {
+            qDebug()<<"table insert!";
+        }
+
+
+    }
+    database.close();
+}
+
 
 
 void MyThread::sendToUart(QByteArray tmp)
