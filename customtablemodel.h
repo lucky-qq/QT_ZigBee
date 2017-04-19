@@ -54,11 +54,7 @@ public:
     void clearMapping() { m_mapping.clear(); }
 
     void UpdateData();
-<<<<<<< HEAD
     void UpdateShowPH(QMap<QDateTime,qreal> m_data);
-=======
-    void UpdateShowPH(QMap<QDateTime,qreal> &m_data);
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
     QDateTime currencyAt(int offset) const;
 private:
     //QList<QMap<QDateTime,qreal>> m_data;

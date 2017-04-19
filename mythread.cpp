@@ -113,7 +113,6 @@ void MyThread::initUart485(QSerialPortInfo info)
     this->light = 0;
     this->ph_val = 0.0f;
 
-<<<<<<< HEAD
     database = QSqlDatabase::addDatabase("QSQLITE");
     database.setDatabaseName("husky02.db");
     database.setUserName("root");
@@ -126,14 +125,6 @@ void MyThread::initUart485(QSerialPortInfo info)
     timer->start(1000*3);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
     //updateTablePH("ph");
     test("ph");
-=======
-    sleep(5000);
-    initShowPH();
-    timer = new QTimer(this);
-    connect(timer,&QTimer::timeout,this,&MyThread::beginRead);
-    timer->start(1000*5);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
-    //updateTable("ph");
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
     qDebug() << "child thread 2:========================"<< QThread::currentThread() ;
 
 }
@@ -160,7 +151,6 @@ void MyThread::beginRead()
     if(ph_map.count() == PLOT_NUM)
     {
         ph_map.clear();
-<<<<<<< HEAD
         updateOneDay("ph");
         return ;
     }
@@ -212,18 +202,6 @@ void MyThread::updateOneDay(QString str)
         }
     }
     database.close();
-=======
-        updateOneDay();
-    }
-
-    updateShowPH("ph");
-
-}
-
-void MyThread::updateOneDay()
-{
-
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 }
 
 void MyThread::set_conduct_addr(unsigned char dev_addr,unsigned char addr)
@@ -802,7 +780,6 @@ void MyThread::setFlag(bool flag)
     qDebug() << "stop";
 }
 
-<<<<<<< HEAD
 void MyThread::test(QString str)
 {
     QDateTime current_date = QDateTime::currentDateTime();
@@ -872,35 +849,17 @@ void MyThread::test(QString str)
         }
     }
     database.close();
-=======
-void MyThread::initShowPH()
-{
-    //int need_cnt = (PLOT_NUM -ph_map.count());
-    updateShowPH("ph");
-    emit DynamicShow(ph_map);
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 }
 
 void MyThread::updateShowPH(QString str)
 {
-<<<<<<< HEAD
-=======
-    database = QSqlDatabase::addDatabase("QSQLITE");
-    database.setDatabaseName("husky.db");
-    database.setUserName("root");
-    database.setPassword("123456");
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
     QDateTime current_date = QDateTime::currentDateTime();
     //QString yesterday = current_date.addDays(0).toString("HH:MM:SS");
 
     QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
-<<<<<<< HEAD
-    //QString select_all_PH = QString("select * from %1 order by date desc limit 0,96").arg(str);
-    QString select_all_PH = QString("select * from %1").arg(str);
-=======
     QString select_all_PH = QString("select * from %1 order by date desc limit 0,96").arg(str);
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
+    //QString select_all_PH = QString("select * from %1").arg(str);
     //QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
 
     if(!database.open())
@@ -934,7 +893,6 @@ void MyThread::updateShowPH(QString str)
             qDebug()<<"table select!";
             QMap<QDateTime,qreal> tmp_map;
             tmp_map.clear();
-<<<<<<< HEAD
             QDateTime date;
             QString str;
             qreal var;
@@ -947,24 +905,11 @@ void MyThread::updateShowPH(QString str)
                 var = sql_query.value(2).toDouble();
                 tmp_map.insert(date,var);
                 qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(str).arg(var);
-=======
-            while(sql_query.next())
-            {
-                int id = sql_query.value(0).toInt();
-                QDateTime date = sql_query.value(1).toDateTime();
-                QString str = date.toLocalTime().toString("h:m");
-                qreal var = sql_query.value(2).toDouble();
-                tmp_map.insert(date,var);
-                //qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(str).arg(var);
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
                 //qDebug()<<QString("date:%1    var:%2").arg(str).arg(var);
             }
 
             emit DynamicShow(tmp_map);
-<<<<<<< HEAD
-            tmp_map.clear();
-=======
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
+            //tmp_map.clear();
             qDebug()<<"emit ..............................";
         }
     }
@@ -973,14 +918,7 @@ void MyThread::updateShowPH(QString str)
 
 void MyThread::updateTablePH(QString str)
 {
-<<<<<<< HEAD
 
-=======
-    database = QSqlDatabase::addDatabase("QSQLITE");
-    database.setDatabaseName("husky.db");
-    database.setUserName("root");
-    database.setPassword("123456");
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
     static int primary_key = 0;
 
     QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
@@ -1012,7 +950,6 @@ void MyThread::updateTablePH(QString str)
 
         }
 
-<<<<<<< HEAD
 
 
 
@@ -1046,19 +983,10 @@ void MyThread::updateTablePH(QString str)
         sql_query.prepare(insert_PH);
 #if 0
         for(int i = cnt;i < 96*3;i++)
-=======
-        sql_query.prepare(insert_PH);
-
-        QVariantList  vars;
-        QVariantList  ids;
-#if 0
-        for(int i = 100;i < 96*28;i++)
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
         {
             ids.append(i+1);
 
         }
-<<<<<<< HEAD
         for(int i = cnt;i < 96*3;i++)
         {
             vars.append(7.5);
@@ -1080,24 +1008,6 @@ void MyThread::updateTablePH(QString str)
 
         sql_query.addBindValue(ids);
         sql_query.addBindValue(vars);
-=======
-        for(int i = 100;i < 96*28;i++)
-        {
-            vars.append(7.5);
-
-        }
-#else
-
-        if(primary_key >= 96*31)
-            primary_key =0;
-
-         primary_key++;
-        ids.append(primary_key);
-        vars.append(ph_val);
-        sql_query.addBindValue(ids);
-        sql_query.addBindValue(vars);
-#endif
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
         if(!sql_query.execBatch())
         {
             qDebug()<<sql_query.lastError();

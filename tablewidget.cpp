@@ -41,10 +41,7 @@
 #include <QValueAxis>
 #include <QSplineSeries>
 #include <QDebug>
-<<<<<<< HEAD
 #include <QTableWidget>
-=======
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -59,7 +56,6 @@ TableWidget::TableWidget(QWidget *parent)
 
     //! [2]
     // create table view and add model to it
-<<<<<<< HEAD
     DelReconQueue *itemDelegate = new DelReconQueue(this);
     QTableView *tableView = new QTableView;
     tableView->setModel(model);
@@ -67,12 +63,6 @@ TableWidget::TableWidget(QWidget *parent)
     tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->resizeColumnsToContents();
-=======
-    QTableView *tableView = new QTableView;
-    tableView->setModel(model);
-    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
     tableView->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
 
 
@@ -137,11 +127,7 @@ TableWidget::TableWidget(QWidget *parent)
     //! [9]
 }
 
-<<<<<<< HEAD
 void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
-=======
-void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> &tmp)
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 {
    model->UpdateShowPH(tmp);
    qDebug()<<"signal ..............................";

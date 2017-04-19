@@ -8,11 +8,7 @@
 #include "customtablemodel.h"
 
 
-<<<<<<< HEAD
 typedef QMap<QDateTime,qreal> PH_MAP;
-=======
-typedef QMap<QDateTime,qreal>&  PH_MAP;
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 MyWidget::MyWidget(QWidget *parent) :
     QWidget(parent),
@@ -120,11 +116,7 @@ MyWidget::MyWidget(QWidget *parent) :
 
     chart1 = new TableWidget ();
     uart485_module = new MyThread;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
-<<<<<<< HEAD
     qRegisterMetaType<QMap<QDateTime,qreal>>("QMap<QDateTime,qreal>");
-=======
-    qRegisterMetaType<PH_MAP>("PH_MAP");
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
     connect(uart485_module,&MyThread::DynamicShow,chart1,&TableWidget::updateMVC_PH,Qt::QueuedConnection);
 
     //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
@@ -324,11 +316,7 @@ void MyWidget::detectSerial()
     //将每个可用串口号作为一个条目添加到串口选择下拉框
     foreach (QSerialPortInfo info, infos) {
         //ui->comboBox->addItem(info.portName());
-<<<<<<< HEAD
         if(info.portName().contains("COM1"))
-=======
-        if(info.portName().contains("ttyUSB"))
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
         {
             qDebug()<<"Aloha";
 

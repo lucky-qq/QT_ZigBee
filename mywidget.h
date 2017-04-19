@@ -7,11 +7,7 @@
 #include "frmmain.h"
 #include "mythread.h"
 #include "headtitle.h"
-<<<<<<< HEAD
 //include <qwt_dial.h>
-=======
-#include <qwt_dial.h>
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 #include "qcgaugewidget.h"
 #include "qcwmeter.h"
 #include "qcwthermometer.h"

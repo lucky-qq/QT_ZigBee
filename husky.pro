@@ -6,11 +6,7 @@
 
 QT       += core gui
 QT       += serialport charts sql
-<<<<<<< HEAD
 #CONFIG += qwt
-=======
-CONFIG += qwt
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -42,12 +38,8 @@ SOURCES += main.cpp\
     mydht.cpp \
     mykeyboard.cpp \
     customtablemodel.cpp \
-<<<<<<< HEAD
     tablewidget.cpp \
     delreconqueue.cpp
-=======
-    tablewidget.cpp
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 HEADERS  += mywidget.h \
     searchfilter.h \
@@ -61,20 +53,12 @@ HEADERS  += mywidget.h \
     mydht.h \
     mykeyboard.h \
     customtablemodel.h \
-<<<<<<< HEAD
     tablewidget.h \
     delreconqueue.h
-=======
-    tablewidget.h
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 FORMS    += mywidget.ui
 
 RESOURCES += \
     myresource.qrc
 #LIBS += -L"/home/zhenjun/Qt5.7.1/5.7/gcc_64/lib/" -lqwt
-<<<<<<< HEAD
 #LIBS += -L"/opt/arm-qt5.7.0/lib/" -lqwt
-=======
-LIBS += -L"/opt/arm-qt5.7.0/lib/" -lqwt
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
