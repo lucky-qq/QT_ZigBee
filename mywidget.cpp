@@ -216,6 +216,8 @@ void MyWidget::set_chart1_layout()
     headtitle *chart_title = new headtitle(QString("://src_img/g_left.png"),QString("PH值"),QString("://src_img/p_right.png"),0);
     connect(chart_title,&headtitle::left,this,&MyWidget::change_left);
     connect(chart_title,&headtitle::right,this,&MyWidget::change_right);
+    connect(chart1,&TableWidget::changeShowDate,uart485_module,&MyThread::resolveDateChangePH);
+
     main_layout->addWidget(chart_title);
     main_layout->addWidget(chart1);
     main_layout->setMargin(0);
@@ -325,7 +327,7 @@ void MyWidget::detectSerial()
     //将每个可用串口号作为一个条目添加到串口选择下拉框
     foreach (QSerialPortInfo info, infos) {
         //ui->comboBox->addItem(info.portName());
-        if(info.portName().contains("COM1"))
+        if(info.portName().contains("ttyUSB"))
         {
             qDebug()<<"Aloha";
 

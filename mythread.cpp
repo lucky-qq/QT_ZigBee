@@ -113,6 +113,9 @@ void MyThread::initUart485(QSerialPortInfo info)
     this->light = 0;
     this->ph_val = 0.0f;
 
+    today = QDateTime::currentDateTime();
+    current_date = today;
+
     database = QSqlDatabase::addDatabase("QSQLITE");
     database.setDatabaseName("husky02.db");
     database.setUserName("root");
@@ -122,12 +125,80 @@ void MyThread::initUart485(QSerialPortInfo info)
     updateShowPH("ph");
     timer = new QTimer(this);
     connect(timer,&QTimer::timeout,this,&MyThread::beginRead);
-    timer->start(1000*3);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
+    timer->start(1000*10);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
     //updateTablePH("ph");
     //test("ph");
     qDebug() << "child thread 2:========================"<< QThread::currentThread() ;
 
 }
+
+void MyThread::resolveDateChangePH(int date_index)
+{
+    current_date = today.addDays(-30+date_index);
+    //if(current_date != today)
+    {
+        QString str = current_date.toString("yyyy-MM-dd");
+
+        QString select_all_PH = QString("select * from %1 where date(date)>=date('%2') and date(date)<=date('%3') limit 0,96").arg(QString("ph")).arg(str).arg(str);
+        QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(QString("ph"));
+
+
+        if(!database.open())
+        {
+            qDebug()<<database.lastError();
+            qFatal("failed to connect.") ;
+        }
+        else
+        {
+            QSqlQuery sql_query;
+            qDebug()<<"opend-----";
+            sql_query.prepare(create_PH);
+            if(!sql_query.exec())
+            {
+                qDebug()<<sql_query.lastError()<<"err 01 ";
+            }
+            else
+            {
+                qDebug()<<"table created!";
+
+            }
+
+            //查询所有数据
+            sql_query.prepare(select_all_PH);
+            if(!sql_query.exec())
+            {
+                qDebug()<<sql_query.lastError()<<"err 03 ";;
+            }
+            else
+            {
+                qDebug()<<"table select!";
+
+                 QMap<QDateTime,qreal> tmp_map;
+                if(tmp_map.count() > 0)
+                    tmp_map.clear();
+                QDateTime date;
+                QString str;
+                qreal var;
+                int id;
+                while(sql_query.next())
+                {
+                    id = sql_query.value(0).toInt();
+                    date = sql_query.value(1).toDateTime();
+                    str = date.toLocalTime().toString();
+                    var = sql_query.value(2).toDouble();
+                    tmp_map.insert(date,var);
+                    //qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(str).arg(var);
+                    //qDebug()<<QString("date:%1    var:%2").arg(str).arg(var);
+                }
+
+                emit DynamicShow(tmp_map);
+                qDebug()<<"emit ..............................";
+            }
+        }
+        database.close();
+    }
+}
+
 void MyThread::beginRead()
 {
     //timer->stop();//关闭该定时器
@@ -154,8 +225,8 @@ void MyThread::beginRead()
         updateOneDay("ph");
         return ;
     }
-
-    emit DynamicShow(this->ph_map);
+    if(current_date == today)
+        emit DynamicShow(this->ph_map);
 }
 
 void MyThread::updateOneDay(QString str)
@@ -891,8 +962,10 @@ void MyThread::updateShowPH(QString str)
         else
         {
             qDebug()<<"table select!";
-            QMap<QDateTime,qreal> tmp_map;
-            tmp_map.clear();
+             QMap<QDateTime,qreal> tmp_map;
+
+            if(tmp_map.count() > 0)
+                tmp_map.clear();
             QDateTime date;
             QString str;
             qreal var;
@@ -904,7 +977,7 @@ void MyThread::updateShowPH(QString str)
                 str = date.toLocalTime().toString();
                 var = sql_query.value(2).toDouble();
                 tmp_map.insert(date,var);
-                qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(str).arg(var);
+                //qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(str).arg(var);
                 //qDebug()<<QString("date:%1    var:%2").arg(str).arg(var);
             }
 

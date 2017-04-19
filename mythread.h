@@ -124,6 +124,9 @@ public:
     float ph_val;
     QSqlDatabase database;
     QMap<QDateTime,qreal> ph_map;
+    QDateTime current_date;
+    QDateTime today;
+
 
 
     /*date timestamp not null default (datetime('now','localtime'))*/
@@ -135,6 +138,7 @@ signals:
 
 
 public slots:
+    void resolveDateChangePH(int date_index);
 
 private:
 

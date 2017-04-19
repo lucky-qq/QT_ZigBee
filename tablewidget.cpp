@@ -42,6 +42,8 @@
 #include <QSplineSeries>
 #include <QDebug>
 #include <QTableWidget>
+#include <QComboBox>
+#include <QVBoxLayout>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -56,7 +58,9 @@ TableWidget::TableWidget(QWidget *parent)
 
     //! [2]
     // create table view and add model to it
-    DelReconQueue *itemDelegate = new DelReconQueue();
+    itemDelegate = new DelReconQueue();
+    connect(itemDelegate,&DelReconQueue::commitData,this,&TableWidget::resolveCombox);
+
     QTableView *tableView = new QTableView;
     tableView->setModel(model);
     tableView->setItemDelegateForColumn(0, itemDelegate);//设置第二列
@@ -64,6 +68,20 @@ TableWidget::TableWidget(QWidget *parent)
     tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->resizeColumnsToContents();
     tableView->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
+
+    QComboBox * dateCombox = new QComboBox;
+    QDateTime today = QDateTime ::currentDateTime();
+    for (int i = -30;i <= 0; i++)
+        dateCombox->addItem(today.addDays(i).toString("yyyy-MM-dd"));
+    connect(dateCombox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &TableWidget::comBoxUpdate);
+    dateCombox->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
+
+    QVBoxLayout * table_layout = new QVBoxLayout;
+    table_layout->addWidget(dateCombox);
+    table_layout->addWidget(tableView);
+
+    QWidget * myTable = new QWidget;
+    myTable->setLayout(table_layout);
 
 
     //connect(model, &CustomTableModel::updateCount, this, &QTableView::updateCount);
@@ -119,7 +137,7 @@ TableWidget::TableWidget(QWidget *parent)
     //! [9]
     // create main layout
     QGridLayout *mainLayout = new QGridLayout;
-    mainLayout->addWidget(tableView, 1, 0);
+    mainLayout->addWidget(myTable, 1, 0);
     mainLayout->addWidget(chartView, 1, 1);
     mainLayout->setColumnStretch(1, 1);
     mainLayout->setColumnStretch(0, 0);
@@ -131,4 +149,24 @@ void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
 {
    model->UpdateShowPH(tmp);
    qDebug()<<"signal ..............................";
+}
+
+
+void TableWidget::resolveCombox(QWidget *editor)
+{
+    QComboBox *comboBox = static_cast<QComboBox*>(editor);
+
+    int tmp_date = comboBox->currentIndex();
+
+    if(tmp_date != -1)
+    {
+        qDebug()<<"---------------------------------------------------touch"<<tmp_date;
+        emit changeShowDate(tmp_date);
+    }
+
+}
+
+void TableWidget::comBoxUpdate(int date_index)
+{
+    emit changeShowDate(date_index);
 }

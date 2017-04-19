@@ -4,6 +4,7 @@
 #include <QStyleOption>
 #include <QDesktopWidget>
 #include <QDateTime>
+#include <QDebug>
 
 DelReconQueue::DelReconQueue(QWidget *parent) :
     QStyledItemDelegate(parent)
@@ -46,8 +47,10 @@ QWidget * DelReconQueue::createEditor(QWidget *parent, const QStyleOptionViewIte
 {
     QComboBox *editor = new QComboBox(parent);
     QDateTime today = QDateTime ::currentDateTime();
-    for (int i = -31;i <= 0; i++)
-        editor->addItem(today.addDays(i).toString("MM-dd"));
+    for (int i = -30;i <= 0; i++)
+        editor->addItem(today.addDays(i).toString("dd"));
+
+    connect(editor, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &DelReconQueue::commitAndCloseEditor);
     return editor;
 }
 
@@ -57,11 +60,27 @@ void DelReconQueue::setEditorData(QWidget *editor, const QModelIndex &index) con
     QComboBox *comboBox = static_cast<QComboBox*>(editor);
     int tindex = comboBox->findText(text);
     comboBox->setCurrentIndex(tindex);
+
 }
 
 void DelReconQueue::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
     QComboBox *comboBox = static_cast<QComboBox*>(editor);
     QString text = comboBox->currentText();
+
     model->setData(index, text, Qt::EditRole);
+
+
+}
+void DelReconQueue::updateEditorGeometry(QWidget *editor,
+    const QStyleOptionViewItem &option, const QModelIndex &) const
+{
+    editor->setGeometry(option.rect);
+}
+
+void DelReconQueue::commitAndCloseEditor(int )
+{
+        QComboBox *comboBox = qobject_cast<QComboBox *>(sender());
+        emit commitData(comboBox);
+        emit closeEditor(comboBox);
 }

@@ -42,7 +42,7 @@ class TableWidget : public QWidget
     Q_OBJECT
 
 signals:
-
+    void changeShowDate(int);
 
 public:
     void updateMVC_PH(QMap<QDateTime,qreal> tmp);
@@ -50,6 +50,11 @@ public:
     TableWidget(QWidget *parent = 0);
     QDateTimeAxis *axisX;
     QValueAxis *axisY;
+    DelReconQueue *itemDelegate;
+
+public slots:
+    void resolveCombox(QWidget *editor);
+    void comBoxUpdate(int date_index);
 
 };
 
