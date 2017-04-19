@@ -257,39 +257,48 @@ void MyWidget::set_chart3_layout()
 
 void MyWidget::dealClose()
 {
-    if(thread->isRunning() == false)
-     {
-            return;
-     }
+    if(thread != NULL && myT != NULL)
+    {
+        if(thread->isRunning() == false)
+         {
+                return;
+         }
 
 
-    //2.如果调用的是子线程的函数（对象已被放入子线程，其成员函数均在子线程）
-    //需要在子线程退出的之前调用
 
-    myT->setFlag(true);//更新子线程的isStop标志--结束子线程的处理函数
-    //3.退出子线程要显示的调用这两个函数，否则主线程退出但子线程还在运行
-    thread->quit();
-    //回收资源
-    thread->wait();
-
-    //4. 将要被放入子线程的对象在主线程初始化（构造）的时候不能指定父对象，且需要在子线程结束以后显示delete
-    delete myT;
+        //2.如果调用的是子线程的函数（对象已被放入子线程，其成员函数均在子线程）
+        //需要在子线程退出的之前调用
 
 
-    /*回收485子线程*/
+        myT->setFlag(true);//更新子线程的isStop标志--结束子线程的处理函数
+        //3.退出子线程要显示的调用这两个函数，否则主线程退出但子线程还在运行
+        thread->quit();
+        //回收资源
+        thread->wait();
 
-    if(uart485_thread->isRunning() == false)
-     {
-            return;
-     }
+        //4. 将要被放入子线程的对象在主线程初始化（构造）的时候不能指定父对象，且需要在子线程结束以后显示delete
+        delete myT;
+    }
 
-    uart485_module->setFlag(true);
-    uart485_thread->quit();
-    uart485_thread->wait();
-    delete uart485_module;
 
-    /*处理温湿度节点对象*/
-    delete[] dht_items;
+    if(uart485_thread != NULL && uart485_module != NULL)
+    {
+
+        /*回收485子线程*/
+
+        if(uart485_thread->isRunning() == false)
+         {
+                return;
+         }
+
+        uart485_module->setFlag(true);
+        uart485_thread->quit();
+        uart485_thread->wait();
+        delete uart485_module;
+
+        /*处理温湿度节点对象*/
+        delete[] dht_items;
+    }
 }
 
 

@@ -56,7 +56,7 @@ TableWidget::TableWidget(QWidget *parent)
 
     //! [2]
     // create table view and add model to it
-    DelReconQueue *itemDelegate = new DelReconQueue(this);
+    DelReconQueue *itemDelegate = new DelReconQueue();
     QTableView *tableView = new QTableView;
     tableView->setModel(model);
     tableView->setItemDelegateForColumn(0, itemDelegate);//设置第二列

@@ -124,7 +124,7 @@ void MyThread::initUart485(QSerialPortInfo info)
     connect(timer,&QTimer::timeout,this,&MyThread::beginRead);
     timer->start(1000*3);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
     //updateTablePH("ph");
-    test("ph");
+    //test("ph");
     qDebug() << "child thread 2:========================"<< QThread::currentThread() ;
 
 }
@@ -909,7 +909,7 @@ void MyThread::updateShowPH(QString str)
             }
 
             emit DynamicShow(tmp_map);
-            //tmp_map.clear();
+
             qDebug()<<"emit ..............................";
         }
     }
