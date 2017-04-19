@@ -38,13 +38,6 @@
 #include <QtWidgets/QHeaderView>
 #include <QDateTimeAxis>
 #include <QBarCategoryAxis>
-#include <QValueAxis>
-#include <QSplineSeries>
-#include <QDebug>
-<<<<<<< HEAD
-#include <QTableWidget>
-=======
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -54,27 +47,16 @@ TableWidget::TableWidget(QWidget *parent)
     // create simple model for storing data
     // user's table data model
     //! [1]
-    model = new CustomTableModel;
+    CustomTableModel *model = new CustomTableModel;
     //! [1]
 
     //! [2]
     // create table view and add model to it
-<<<<<<< HEAD
-    DelReconQueue *itemDelegate = new DelReconQueue(this);
-    QTableView *tableView = new QTableView;
-    tableView->setModel(model);
-    tableView->setItemDelegateForColumn(0, itemDelegate);//设置第二列
-    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableView->resizeColumnsToContents();
-=======
     QTableView *tableView = new QTableView;
     tableView->setModel(model);
     tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
     tableView->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
-
 
     //connect(model, &CustomTableModel::updateCount, this, &QTableView::updateCount);
     //! [2]
@@ -82,19 +64,18 @@ TableWidget::TableWidget(QWidget *parent)
     //! [3]
     QChart *chart = new QChart;
     chart->setAnimationOptions(QChart::AllAnimations);
-    chart->legend()->hide();
     //! [3]
 
     // series 1
     //! [4]
-    QSplineSeries *series = new QSplineSeries();
-    //splineSeries->setName("spline");
+    QLineSeries *series = new QLineSeries;
+    series->setName("Line 1");
 
     QVXYModelMapper *mapper = new QVXYModelMapper(this);
     mapper->setXColumn(0);
     mapper->setYColumn(1);
-    mapper->setFirstRow(0);
-    mapper->setRowCount(96);
+    mapper->setFirstRow(1);
+    mapper->setRowCount(10);
     mapper->setSeries(series);
     mapper->setModel(model);
 
@@ -110,20 +91,41 @@ TableWidget::TableWidget(QWidget *parent)
     model->addMapping(seriesColorHex, QRect(0, 0, 2, model->rowCount()));
     //! [5]
 
-    axisX = new QDateTimeAxis;
-    axisX->setFormat("h:m");
-    chart->setAxisX(axisX, series);
 
-    axisY = new QValueAxis;
-    axisY->setRange(4, 9);
-    axisY->setLabelFormat("%.2f");
-    chart->setAxisY(axisY, series);
+//    // series 2
+//    //! [6]
+//    series = new QLineSeries;
+//    series->setName("Line 2");
 
+//    mapper = new QVXYModelMapper(this);
+//    mapper->setXColumn(2);
+//    mapper->setYColumn(3);
+//    mapper->setSeries(series);
+//    mapper->setModel(model);
+//    chart->addSeries(series);
+//    //! [6]
 
+//    //! [7]
+//    // get the color of the series and use it for showing the mapped area
+//    seriesColorHex = "#" + QString::number(series->pen().color().rgb(), 16).right(6).toUpper();
+//    model->addMapping(seriesColorHex, QRect(2, 0, 2, model->rowCount()));
+//    //! [7]
+
+    //! [8]
+    //QStringList categories;
+    //categories << "April" << "May" << "June" << "July" << "August";
+    //QDateTimeAxis *axis = new QDateTimeAxis();
+    //axis->append(categories);
+    QStringList categories;
+    categories << "08:00" << "Feb" << "Mar" << "Apr" << "May" << "Jun";
+    QBarCategoryAxis *axis = new QBarCategoryAxis();
+    axis->append(categories);
+    chart->createDefaultAxes();
+    chart->setAxisX(axis, series);
+    //chart->setAxisX(axis, series);
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setMinimumSize(640, 480);
-
     //! [8]
 
     //! [9]
@@ -135,14 +137,4 @@ TableWidget::TableWidget(QWidget *parent)
     mainLayout->setColumnStretch(0, 0);
     setLayout(mainLayout);
     //! [9]
-}
-
-<<<<<<< HEAD
-void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
-=======
-void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> &tmp)
->>>>>>> 80493cd21e8919138693a2763d5d661995e101af
-{
-   model->UpdateShowPH(tmp);
-   qDebug()<<"signal ..............................";
 }

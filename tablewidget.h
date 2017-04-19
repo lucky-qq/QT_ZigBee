@@ -34,7 +34,10 @@
 #include <QDateTimeAxis>
 #include <QValueAxis>
 #include "customtablemodel.h"
+<<<<<<< HEAD
 #include "delreconqueue.h"
+=======
+>>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 QT_CHARTS_USE_NAMESPACE
 class TableWidget : public QWidget
@@ -45,7 +48,11 @@ signals:
 
 
 public:
+<<<<<<< HEAD
     void updateMVC_PH(QMap<QDateTime,qreal> tmp);
+=======
+    void updateMVC_PH(QMap<QDateTime,qreal>& tmp);
+>>>>>>> 80493cd21e8919138693a2763d5d661995e101af
     CustomTableModel *model;
     TableWidget(QWidget *parent = 0);
     QDateTimeAxis *axisX;

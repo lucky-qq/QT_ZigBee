@@ -77,7 +77,11 @@ public:
 
     void updateTablePH(QString str);
     void updateShowPH(QString str);
+<<<<<<< HEAD
     void test(QString str);
+=======
+    void initShowPH();
+>>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
     //读取指定长度的数据，但是返回的是本次读取到的实际字节数
     //实际读取的字节数可能比length小
@@ -101,7 +105,11 @@ public:
      * PH传感器操作函数
     *************************/
     void get_PH_val(unsigned char dev_addr);
+<<<<<<< HEAD
     void updateOneDay(QString str);
+=======
+    void updateOneDay();
+>>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 
     /*************************
@@ -131,7 +139,11 @@ signals:
     void isDone(QByteArray tmp);//接收到完整的包头以后给主线程发送的信号--携带包头数据
     void end();
     void ImageOK(const QString& picture_path);
+<<<<<<< HEAD
     void DynamicShow(QMap<QDateTime,qreal> ph_map);
+=======
+    void DynamicShow(QMap<QDateTime,qreal> &ph_map);
+>>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 
 
 public slots:

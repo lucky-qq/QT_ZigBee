@@ -39,6 +39,7 @@
 CustomTableModel::CustomTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
+<<<<<<< HEAD
     m_columnCount = 2;
     m_rowCount = 96;
     static float inc = 0.1;
@@ -78,6 +79,29 @@ void CustomTableModel::UpdateShowPH(QMap<QDateTime,qreal> m_data)
             QModelIndex index2 = this->index(i, 1, QModelIndex());
             emit dataChanged(index2, index2);
     }
+=======
+    qsrand(QTime(0, 0, 0).secsTo(QTime::currentTime()));
+
+    m_columnCount = 2;
+    m_rowCount = 96;
+}
+
+void CustomTableModel::UpdateShowPH(QMap<QDateTime,qreal>& m_data)
+{
+    //this->m_data.clear();
+    qDebug()<<"model in";
+    this->m_data = m_data;
+    qDebug()<<"into CustomTableModel::UpdateShowPH ";
+//    for (int i = 0; i <m_rowCount; i++) {
+//            QModelIndex index = this->index(i, 0, QModelIndex());
+//            emit dataChanged(index, index);
+//            QModelIndex index2 = this->index(i, 1, QModelIndex());
+//            emit dataChanged(index2, index2);
+//    }
+    //reset();
+
+     qDebug()<<"model out";
+>>>>>>> 80493cd21e8919138693a2763d5d661995e101af
 }
 
 void CustomTableModel::UpdateData()
@@ -172,6 +196,10 @@ QVariant CustomTableModel::data(const QModelIndex &index, int role) const
             if (rect.contains(index.column(), index.row()))
                 return QColor(m_mapping.key(rect));
         }
+<<<<<<< HEAD
+=======
+        // cell not mapped return white color
+>>>>>>> 80493cd21e8919138693a2763d5d661995e101af
         return QColor(Qt::white);
     }
     return QVariant();
