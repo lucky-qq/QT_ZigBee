@@ -19,6 +19,9 @@ public:
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
 
+public slots:
+
+
 public:
     QcwThermometer* thermometer;
     QcwMeter *meter;

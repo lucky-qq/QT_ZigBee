@@ -137,3 +137,5 @@ void MyDHT::mouseReleaseEvent(QMouseEvent *event)
     //将该事件传给父类处理
     QWidget::mousePressEvent(event);
 }
+
+

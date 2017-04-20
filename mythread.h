@@ -89,6 +89,7 @@ public:
     int  readFrameData(unsigned int length);
     void handleHead(); //处理包头数据
     void handlePhoto();//处理图片的有效数据
+    void handleDHT();
     void sendToUart(QByteArray tmp);
     void sleep(int msec);
 
@@ -146,6 +147,8 @@ signals:
     void updateComboxPH(QDateTime first_day);
     void updateComboxEC(QDateTime first_day);
     void updateComboxLight(QDateTime first_day);
+    void updateDHTSignal(int node, int humiture,int temprature);
+
 
 
 public slots:

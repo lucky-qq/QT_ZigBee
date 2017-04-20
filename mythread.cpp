@@ -656,6 +656,68 @@ void  MyThread::handlePhoto()
     }
 
 }
+//cal(((unsigned char *)pTemphumiData + 3 + i*5), f_temp + i, f_humi + i);
+static void cal(unsigned char temp_humi[4],float *temp,float *humi)
+{
+        const double C1=-2.0468;              // for 12 Bit
+        const double C2=+0.0367;           // for 12 Bit
+        const double C3=-0.0000015955;        // for 12 Bit
+        const double T1=+0.01;             // for 14 Bit @ 5V
+        const double T2=+0.00008;           // for 14 Bit @ 5V
+
+    unsigned int humi_i,temp_i;
+        humi_i  = (temp_humi[0]<<8) + temp_humi[1];
+        temp_i  = (temp_humi[2]<<8) + temp_humi[3];
+
+    float rh=humi_i;             // rh:      Humidity [Ticks] 12 Bit
+    float t=temp_i;           // t:       Temperature [Ticks] 14 Bit
+    float rh_lin;                     // rh_lin:  Humidity linear
+    float rh_true;                    // rh_true: Temperature compensated humidity
+    float t_C;                        // t_C   :  Temperature [癈]
+
+        t_C=t*0.01 - 39.7;                  //calc. temperature from ticks to [癈]
+    rh_lin=C3*rh*rh + C2*rh + C1;     //calc. humidity from ticks to [%RH]
+    rh_true=(t_C-25)*(T1+T2*rh)+rh_lin;   //calc. temperature compensated humidity [%RH]
+    if(rh_true>100)rh_true=100;       //cut if the value is outside of
+    if(rh_true<0.1)rh_true=0.1;       //the physical possible range
+
+    *temp = t_C;
+    *humi = rh_true;
+}
+
+
+void MyThread::handleDHT()
+{
+    //记录读取状态的变量清零--以便下一个指定长度的读取
+    cnt_read = 0;
+    cnt_need = 0;
+
+    serial_state = READ_HDR;//更新串口读取状态--立马要读取下一个数据包的包头了
+    unsigned char tmp_data[4]={0};
+
+    tmp_data[0] = bytesToInt(read_data.mid(0,1));
+    tmp_data[1] = bytesToInt(read_data.mid(1,1));
+    tmp_data[2] = bytesToInt(read_data.mid(2,1));
+    tmp_data[3] = bytesToInt(read_data.mid(3,1));
+
+    float f_temp = 0.0f;
+    float f_humi = 0.0f;
+    cal((unsigned char *)tmp_data, &f_temp, &f_humi);
+
+    qDebug()<<"f_temp--------------------------------------------"<<f_temp;
+    qDebug()<<"f_humi--------------------------------------------"<<f_humi;
+    qDebug()<<node_id;
+
+    emit updateDHTSignal((node_id),static_cast<int>(f_humi),static_cast<int>(f_temp));
+
+
+    read_data.clear();
+    data_need = 0;
+    cnt = 0;
+    my_stream.clear();
+    pkt_cnt = 0;
+
+}
 
 //读取串口数据--真正子线程处理函数
 void MyThread::readSerial()
@@ -690,6 +752,7 @@ void MyThread::readSerial()
                 break;
 
             case READ_DATA://读有效数据
+
                 if(node_type == 1)//如果是图像节点的数据（不再判断节点--目前只有一个节点的数据）
                 {
                     ret = readFrameData(data_need);//读取有效长度（从包头获取）的数据
@@ -700,6 +763,18 @@ void MyThread::readSerial()
 
                     if(data_need == cnt_read)//已读取到的字节数和目标长度相等
                         handlePhoto();//处理有效数据
+                }
+
+                if(node_type == 2)//如果是图像节点的数据（不再判断节点--目前只有一个节点的数据）
+                {
+                    ret = readFrameData(data_need);//读取有效长度（从包头获取）的数据
+                    if(ret == -1)//读取错误
+                    {
+                        return;
+                    }
+
+                    if(data_need == cnt_read)//已读取到的字节数和目标长度相等
+                        handleDHT();//处理有效数据
                 }
 
                 break;

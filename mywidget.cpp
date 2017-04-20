@@ -207,6 +207,11 @@ void MyWidget::setDHTLayout(int num)
 
 }
 
+void MyWidget::updateDHTSlot(int node, int humiture,int temprature)
+{
+    (dht_items+node)->meter->setValue(humiture);
+    (dht_items+node)->thermometer->setValue(temprature);
+}
 
 void MyWidget::set_chart1_layout()
 {
@@ -402,6 +407,7 @@ void MyWidget::detectSerial()
 
                                 connect(myT,&MyThread::ImageOK,this,&MyWidget::show_image);
                                 connect(myT,&MyThread::ImageOK,this,&MyWidget::my_Init);
+                                connect(myT,&MyThread::updateDHTSignal,this,&MyWidget::updateDHTSlot);
 
                                 //连接主线程的initUart信号到子线程的initSerial槽函数，开始串口初始化
                                 connect(this,&MyWidget::initUart,myT,&MyThread::initSerial);

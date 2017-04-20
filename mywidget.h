@@ -52,6 +52,8 @@ public:
     TableWidget *chart3;
 
 
+public slots:
+    void updateDHTSlot(int node, int humiture,int temprature);
 private slots:
     void on_pushButton_clicked();
     void dealNum();
