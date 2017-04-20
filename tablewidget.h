@@ -35,6 +35,8 @@
 #include <QValueAxis>
 #include "customtablemodel.h"
 #include "delreconqueue.h"
+#include <QChart>
+#include <QSplineSeries>
 
 QT_CHARTS_USE_NAMESPACE
 class TableWidget : public QWidget
@@ -52,6 +54,8 @@ public:
     QValueAxis *axisY;
     DelReconQueue *itemDelegate;
     QComboBox * dateCombox;
+    QChart *chart;
+    QSplineSeries *series;
     void setTitle(QString  str);
 
 public slots:

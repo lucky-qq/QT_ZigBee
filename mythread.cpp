@@ -127,7 +127,11 @@ void MyThread::initUart485(QSerialPortInfo info)
     updateShow(LIGHT_TABLE);
     timer = new QTimer(this);
     connect(timer,&QTimer::timeout,this,&MyThread::updateSensorData);
+#ifdef DEBUG_TIME
+    timer->start(1000*5);
+#else
     timer->start(1000*60);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
+#endif
     //updateTablePH("ph");
     //test("ph");
     qDebug() << "child thread 2:========================"<< QThread::currentThread() ;
@@ -209,12 +213,14 @@ void MyThread::resolveDateChange(int date_index,QString str)
 void MyThread::updateSensorData()
 {
     //timer->stop();//关闭该定时器
+#ifndef DEBUG_TIME
     static int cnt = 0;
     if(++cnt <= 15)
     {
         return ;
     }
     cnt = 0;
+#endif
 
     QDateTime  tmpDate = QDateTime::currentDateTime();
     get_PH_val(PH_DEV_ADDR);

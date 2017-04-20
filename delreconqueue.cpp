@@ -5,6 +5,7 @@
 #include <QDesktopWidget>
 #include <QDateTime>
 #include <QDebug>
+#include "mythread.h"
 
 DelReconQueue::DelReconQueue(QWidget *parent) :
     QStyledItemDelegate(parent)
@@ -23,7 +24,11 @@ void DelReconQueue::paint(QPainter *painter, const QStyleOptionViewItem &option,
         QDateTime time = index.model()->data(index, Qt::DisplayRole).toDateTime();
         //设置'Id'格式字符串: P:00000x;6位10进制数，不足补0;
         //QString text = QString("P:%1").arg(patientId, 6, 10, QChar('0'));
+#ifndef DEBUG_TIME
         QString text = time.toString("hh:mm");
+#else
+        QString text = time.toString("mm:ss");
+#endif
 
         //获取项风格设置
         QStyleOptionViewItem myOption = option;

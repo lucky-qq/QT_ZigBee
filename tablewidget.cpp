@@ -92,14 +92,14 @@ TableWidget::TableWidget(QWidget *parent)
     //! [2]
 
     //! [3]
-    QChart *chart = new QChart;
+    chart = new QChart;
     chart->setAnimationOptions(QChart::AllAnimations);
     chart->legend()->hide();
     //! [3]
 
     // series 1
     //! [4]
-    QSplineSeries *series = new QSplineSeries();
+    series = new QSplineSeries();
     //splineSeries->setName("spline");
 
     QVXYModelMapper *mapper = new QVXYModelMapper(this);
@@ -123,11 +123,19 @@ TableWidget::TableWidget(QWidget *parent)
     //! [5]
 
     axisX = new QDateTimeAxis;
+
+#ifndef DEBUG_TIME
     axisX->setFormat("h:m");
+#else
+    axisX->setFormat("m:s");
+#endif
     chart->setAxisX(axisX, series);
+    chart->setTheme(QChart::ChartThemeQt);
 
     axisY = new QValueAxis;
     axisY->setRange(4, 9);
+    //axisY->setMinorTickCount(4);
+
     axisY->setLabelFormat("%.2f");
     chart->setAxisY(axisY, series);
 
@@ -151,6 +159,7 @@ TableWidget::TableWidget(QWidget *parent)
 
 void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
 {
+   //this->chart->removeSeries(series);
    model->UpdateShow(tmp);
    qDebug()<<"signal ..............................";
 }
