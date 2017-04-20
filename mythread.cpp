@@ -838,7 +838,7 @@ void MyThread::test(QString str)
 {
     QDateTime current_date = QDateTime::currentDateTime();
     QString yesterday = current_date.addDays(-30).toString("yyyy-MM-dd");
-
+    QString query_cnt =  QString("select count(*) from %1").arg(str);
     QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
     //QString select_all_PH = QString("select * from %1 where time(date)>=time('02:42:38') and time(date)<=time('02:42:38')").arg(str);
     //QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);--ok
@@ -847,8 +847,17 @@ void MyThread::test(QString str)
     //QString select_all_PH = QString("select * from %1 where time(date)>=time('02:42:38') and time(date)<=time('02:42:38')").arg(str);--ok
     //QString select_all_PH = QString("select * from %1 where date(date)>=date('%2') and date(date)<=date('%3')").arg(str).arg(yesterday).arg(yesterday);--ok
     //QString select_all_PH = QString("delete from %1 where date(date)>=date('%2') and date(date)<=date('%3')").arg(str).arg(yesterday).arg(yesterday);--ok
-    QString query_cnt =  QString("select count(*) from %1").arg(str);
-
+    //QString select_all_PH = QString("select * from %1").arg(str);
+    //QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
+    //DELETE FROM CACHEYX WHERE id IN(SELECT id FROM CACHEYX ORDER BY TIME DESC LIMIT 3);
+    //QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
+    //QString delete_all_PH = QString("delete from %1 where date(date)>=date('%2') and date(date)<=date('%3')").arg(str).arg(firstday).arg(firstday);
+    //QString select_all_PH = QString("select * from %1 order by date desc limit 0,96").arg(str);
+    //QString select_all_PH = QString("select * from %1").arg(str);
+    //QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
+    // QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
+    //QString delete_all_PH = QString("delete from %1 where date(date)>=date('%2') and date(date)<=date('%3')").arg(str).arg(firstday).arg(firstday);
+    //qDebug()<<delete_all_PH;
     qDebug()<<query_cnt;
 
     qDebug()<<"test ....................................................................................................begin";
