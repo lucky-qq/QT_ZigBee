@@ -122,10 +122,14 @@ MyWidget::MyWidget(QWidget *parent) :
     //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
     connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
     detectSerial();//探测当前系统可用的串口列表
+
+
     setDHTLayout(15);
     set_chart1_layout();
     set_chart2_layout();
     set_chart3_layout();
+
+
     ui->stackedWidget->setCurrentIndex(0);
     qDebug() << "main thread:========================"<< QThread::currentThread() ;
 
@@ -327,7 +331,7 @@ void MyWidget::detectSerial()
     //将每个可用串口号作为一个条目添加到串口选择下拉框
     foreach (QSerialPortInfo info, infos) {
         //ui->comboBox->addItem(info.portName());
-        if(info.portName().contains("ttyUSB"))
+        if(info.portName().contains("COM1"))
         {
             qDebug()<<"Aloha";
 

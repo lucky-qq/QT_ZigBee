@@ -996,7 +996,10 @@ void MyThread::updateTablePH(QString str)
 
     QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
     //QString select_all_PH = QString("select * from %1").arg(str);
-    QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
+    //QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
+    QString insert_PH = QString("insert into %1(ph_var) values(?)").arg(str);
+    //DELETE FROM CACHEYX WHERE id IN(SELECT id FROM CACHEYX ORDER BY TIME DESC LIMIT 3);
+    QString delete_PH = QString("delete from %1 where id in(select id from %2 order by date limit 96)").arg(str).arg(str);
 
 
     if(!database.open())
@@ -1051,7 +1054,18 @@ void MyThread::updateTablePH(QString str)
 
         }
 
-
+        if(cnt >= 2000)
+        {
+            sql_query.prepare(delete_PH);
+            if(!sql_query.exec())
+            {
+                qDebug()<<sql_query.lastError()<<"err 03 ";;
+            }
+            else
+            {
+                qDebug()<<"delete ..................................................................................";
+            }
+        }
 
         sql_query.prepare(insert_PH);
 #if 0
@@ -1064,7 +1078,7 @@ void MyThread::updateTablePH(QString str)
         {
             vars.append(7.5);
 
-        }      
+        }
 #else
 
 
@@ -1079,7 +1093,7 @@ void MyThread::updateTablePH(QString str)
 #endif
 
 
-        sql_query.addBindValue(ids);
+        //sql_query.addBindValue(ids);
         sql_query.addBindValue(vars);
         if(!sql_query.execBatch())
         {
