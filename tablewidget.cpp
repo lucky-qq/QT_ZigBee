@@ -99,7 +99,7 @@ TableWidget::TableWidget(QWidget *parent)
 
     // series 1
     //! [4]
-    series = new QSplineSeries();
+    series = new QLineSeries();
     //splineSeries->setName("spline");
 
     QVXYModelMapper *mapper = new QVXYModelMapper(this);
@@ -130,7 +130,7 @@ TableWidget::TableWidget(QWidget *parent)
     axisX->setFormat("m:s");
 #endif
     chart->setAxisX(axisX, series);
-    chart->setTheme(QChart::ChartThemeQt);
+    //chart->setTheme(QChart::ChartThemeQt);
 
     axisY = new QValueAxis;
     axisY->setRange(4, 9);
@@ -160,6 +160,8 @@ TableWidget::TableWidget(QWidget *parent)
 void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
 {
    //this->chart->removeSeries(series);
+   //if(tmp.count() == 0)
+        //series->clear();
    model->UpdateShow(tmp);
    qDebug()<<"signal ..............................";
 }

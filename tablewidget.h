@@ -55,7 +55,7 @@ public:
     DelReconQueue *itemDelegate;
     QComboBox * dateCombox;
     QChart *chart;
-    QSplineSeries *series;
+    QLineSeries *series;
     void setTitle(QString  str);
 
 public slots:
