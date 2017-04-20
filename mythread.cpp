@@ -922,7 +922,7 @@ void MyThread::test(QString str)
     database.close();
 }
 
-void MyThread::updateShowPH(QString str)
+void MyThread::updateShow(QString str)
 {
 
     QDateTime current_date = QDateTime::currentDateTime();

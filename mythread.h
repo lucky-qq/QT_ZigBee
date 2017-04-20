@@ -75,8 +75,8 @@ public:
     void setFlag(bool flag);//更新isStop标志
 
 
-    void updateTablePH(QString str);
-    void updateShowPH(QString str);
+    void updateTable(QString str);
+    void updateShow(QString str);
     void test(QString str);
 
     //读取指定长度的数据，但是返回的是本次读取到的实际字节数
@@ -101,7 +101,7 @@ public:
      * PH传感器操作函数
     *************************/
     void get_PH_val(unsigned char dev_addr);
-    void updateOneDay(QString str);
+    //void updateOneDay(QString str);
 
 
     /*************************
