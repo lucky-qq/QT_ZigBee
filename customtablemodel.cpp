@@ -35,42 +35,75 @@
 #include <QTimer>
 #include <QDebug>
 #include <QDateTime>
+#include "mythread.h"
 
 CustomTableModel::CustomTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
     m_columnCount = 2;
     m_rowCount = 96;
-    static float inc = 0.1;
-    static int flag = 0;
     m_data.clear();
-    QDateTime  tmpDate = QDateTime::currentDateTime();
-    for (int i = 0; i <m_rowCount; i++) {
-            m_data.insert(tmpDate.addSecs((60*15)*i),6.5+inc);
+    title = QString("");
+    InitData();
+}
 
+void CustomTableModel::InitData()
+{
+    QDateTime  tmpDate = QDateTime::currentDateTime();
+    QString year = tmpDate.toString("yy");
+    QString month = tmpDate.toString("M");
+    QString day = tmpDate.toString("d");
+    QString str = QString("M%1d%2y%3").arg(month).arg(day).arg(year);
+    str.append(QString("00:00:00"));
+    qDebug()<<str;
+    QDateTime dateTime2 = QDateTime::fromString(str,
+                                                  "'M'M'd'd'y'yyhh:mm:ss");
+    qDebug()<<dateTime2.toString();
+    for (int i = 0; i <m_rowCount; i++) {
+            //m_data.insert(tmpDate.addSecs((30)*i),10);
+            m_data.insert(dateTime2.addSecs((60*15)*i),0);
             QModelIndex index = this->index(i, 0, QModelIndex());
             emit dataChanged(index, index);
             QModelIndex index2 = this->index(i, 1, QModelIndex());
             emit dataChanged(index2, index2);
 
-            if(inc >= 2.5)
-                flag = 1;
-            else if(inc <= -2.5)
-                flag = 0;
+    }
+}
+#if 0
+void CustomTableModel::UpdateShow(QMap<QDateTime,qreal> tmp_map)
+{
+    QDateTime  tmpDate = QDateTime::currentDateTime();
+    QString year = tmpDate.toString("yy");
+    QString month = tmpDate.toString("M");
+    QString day = tmpDate.toString("d");
+    static int k = 0;
+    QString str = QString("M%1d%2y%3").arg(month).arg(day).arg(year);
+    str.append(QString("00:00:00"));
+    qDebug()<<str;
+    QDateTime dateTime2 = QDateTime::fromString(str,
+                                                  "'M'M'd'd'y'yyhh:mm:ss");
+    qDebug()<<dateTime2.toString();
+    qDebug()<<"begin update..............................................................";
+    if(m_data.count() > 0)
+        this->m_data.clear();
+    for (int i = 0; i <m_rowCount; i++,k++) {
+            m_data.insert(dateTime2.addSecs((60*15)*i),10+k*10);
+            QModelIndex index = this->index(i, 0, QModelIndex());
+            emit dataChanged(index, index);
+            QModelIndex index2 = this->index(i, 1, QModelIndex());
+            emit dataChanged(index2, index2);
 
-            if(flag == 0)
-                inc = inc +0.1;
-            else if(flag == 1)
-                inc  = inc -0.1;
     }
 }
 
-void CustomTableModel::UpdateShowPH(QMap<QDateTime,qreal> m_data)
+#else
+void CustomTableModel::UpdateShow(QMap<QDateTime,qreal> tmp_map)
 {
+
     if(m_data.count() > 0)
         this->m_data.clear();
 
-    this->m_data = m_data;
+    this->m_data = tmp_map;
     qDebug()<<"into CustomTableModel::UpdateShowPH ";
     for (int i = 0; i <m_rowCount; i++) {
             QModelIndex index = this->index(i, 0, QModelIndex());
@@ -79,6 +112,7 @@ void CustomTableModel::UpdateShowPH(QMap<QDateTime,qreal> m_data)
             emit dataChanged(index2, index2);
     }
 }
+#endif
 
 void CustomTableModel::UpdateData()
 {
@@ -120,6 +154,7 @@ int CustomTableModel::columnCount(const QModelIndex &parent) const
 
 QVariant CustomTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    //qDebug()<<"set header";
     if (role != Qt::DisplayRole)
         return QVariant();
 
@@ -127,10 +162,18 @@ QVariant CustomTableModel::headerData(int section, Qt::Orientation orientation, 
         if (section % 2 == 0)
             return "时间";
         else
-            return "PH值";
+        {
+            if(title.contains(PH_TABLE))
+                 return "PH值";
+            else if(title.contains(CONDUCT_TABLE))
+                 return "电导率";
+            else if(title.contains(LIGHT_TABLE))
+                 return "光照强度";
+        }
     } else {
         return QString("%1").arg(section + 1);
     }
+
 }
 
 QDateTime CustomTableModel::currencyAt(int offset) const

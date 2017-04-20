@@ -55,6 +55,10 @@
 
 #define PLOT_NUM  96
 
+#define PH_TABLE  (QString("ph"))
+#define CONDUCT_TABLE  (QString("conduct"))
+#define LIGHT_TABLE  (QString("light"))
+
 //QString select_max_sql = "select max(id) from PH";
 //QString update_sql = "update student set name = :name where id = :id";
 //QString select_sql = "select id, name from student";
@@ -71,7 +75,7 @@ public:
     void initUart485(QSerialPortInfo info);//串口初始化
     void readSerial();//子线程真正的处理函数--在没有结束程序的时候是死循环
     void readUart485();
-    void beginRead();
+    void updateSensorData();
     void setFlag(bool flag);//更新isStop标志
 
 
@@ -81,7 +85,7 @@ public:
 
     //读取指定长度的数据，但是返回的是本次读取到的实际字节数
     //实际读取的字节数可能比length小
-    int readFrameData(unsigned int length);
+    int  readFrameData(unsigned int length);
     void handleHead(); //处理包头数据
     void handlePhoto();//处理图片的有效数据
     void sendToUart(QByteArray tmp);
@@ -101,7 +105,6 @@ public:
      * PH传感器操作函数
     *************************/
     void get_PH_val(unsigned char dev_addr);
-    //void updateOneDay(QString str);
 
 
     /*************************
@@ -114,11 +117,13 @@ public:
     /******电导率测量值--目前所用的命令返回值是15个字节*****/
     //float temprature;//摄氏度
     quint16 ec;//电导 us/cm
+    QMap<QDateTime,qreal> ec_map;
     //quint16 salinity;//盐度 mg/L
     //quint16 tds;//总溶解固体 mg/L
 
     /*********光照传感器--目前所用命令，返回值是7个字节***********/
     quint32 light;
+    QMap<QDateTime,qreal> light_map;
 
     /*********PH传感器--目前所用命令，返回值是7个字节***********/
     float ph_val;
@@ -134,11 +139,16 @@ signals:
     void isDone(QByteArray tmp);//接收到完整的包头以后给主线程发送的信号--携带包头数据
     void end();
     void ImageOK(const QString& picture_path);
-    void DynamicShow(QMap<QDateTime,qreal> ph_map);
+    void DynamicShowPH(QMap<QDateTime,qreal> map);
+    void DynamicShowEC(QMap<QDateTime,qreal> map);
+    void DynamicShowLight(QMap<QDateTime,qreal> map);
+    void updateComboxPH(QDateTime first_day);
+    void updateComboxEC(QDateTime first_day);
+    void updateComboxLight(QDateTime first_day);
 
 
 public slots:
-    void resolveDateChangePH(int date_index);
+    void resolveDateChange(int date_index,QString str);
 
 private:
 

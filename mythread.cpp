@@ -122,25 +122,27 @@ void MyThread::initUart485(QSerialPortInfo info)
     database.setPassword("123456");
 
     //sleep(5000);
-    updateShowPH("ph");
+    updateShow(PH_TABLE);
+    updateShow(CONDUCT_TABLE);
+    updateShow(LIGHT_TABLE);
     timer = new QTimer(this);
-    connect(timer,&QTimer::timeout,this,&MyThread::beginRead);
-    timer->start(1000*10);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
+    connect(timer,&QTimer::timeout,this,&MyThread::updateSensorData);
+    timer->start(1000*60);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
     //updateTablePH("ph");
     //test("ph");
     qDebug() << "child thread 2:========================"<< QThread::currentThread() ;
 
 }
 
-void MyThread::resolveDateChangePH(int date_index)
+void MyThread::resolveDateChange(int date_index,QString str)
 {
-    current_date = today.addDays(-30+date_index);
+    current_date = today.addDays(-date_index);
+    qDebug()<<current_date.toString()<<"select date..................";
     //if(current_date != today)
     {
-        QString str = current_date.toString("yyyy-MM-dd");
-
-        QString select_all_PH = QString("select * from %1 where date(date)>=date('%2') and date(date)<=date('%3') limit 0,96").arg(QString("ph")).arg(str).arg(str);
-        QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(QString("ph"));
+        QString date = current_date.toString("yyyy-MM-dd");
+        QString select_table = QString("select * from %1 where date(date)>=date('%2') and date(date)<=date('%3') limit 0,96").arg(str).arg(date).arg(date);
+        QString create_table = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
 
 
         if(!database.open())
@@ -152,7 +154,7 @@ void MyThread::resolveDateChangePH(int date_index)
         {
             QSqlQuery sql_query;
             qDebug()<<"opend-----";
-            sql_query.prepare(create_PH);
+            sql_query.prepare(create_table);
             if(!sql_query.exec())
             {
                 qDebug()<<sql_query.lastError()<<"err 01 ";
@@ -164,7 +166,7 @@ void MyThread::resolveDateChangePH(int date_index)
             }
 
             //查询所有数据
-            sql_query.prepare(select_all_PH);
+            sql_query.prepare(select_table);
             if(!sql_query.exec())
             {
                 qDebug()<<sql_query.lastError()<<"err 03 ";;
@@ -176,22 +178,27 @@ void MyThread::resolveDateChangePH(int date_index)
                  QMap<QDateTime,qreal> tmp_map;
                 if(tmp_map.count() > 0)
                     tmp_map.clear();
-                QDateTime date;
-                QString str;
+                QDateTime res_date;
+                QString res_str;
                 qreal var;
                 int id;
                 while(sql_query.next())
                 {
                     id = sql_query.value(0).toInt();
-                    date = sql_query.value(1).toDateTime();
-                    str = date.toLocalTime().toString();
+                    res_date = sql_query.value(1).toDateTime();
+                    res_str = res_date.toLocalTime().toString();
                     var = sql_query.value(2).toDouble();
-                    tmp_map.insert(date,var);
-                    //qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(str).arg(var);
+                    tmp_map.insert(res_date,var);
+                    //qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(res_str).arg(var);
                     //qDebug()<<QString("date:%1    var:%2").arg(str).arg(var);
                 }
 
-                emit DynamicShow(tmp_map);
+                if(str.contains(PH_TABLE))
+                    emit DynamicShowPH(tmp_map);
+                else if(str.contains(CONDUCT_TABLE))
+                    emit DynamicShowEC(tmp_map);
+                else if(str.contains(LIGHT_TABLE))
+                    emit DynamicShowLight(tmp_map);
                 qDebug()<<"emit ..............................";
             }
         }
@@ -199,80 +206,56 @@ void MyThread::resolveDateChangePH(int date_index)
     }
 }
 
-void MyThread::beginRead()
+void MyThread::updateSensorData()
 {
     //timer->stop();//关闭该定时器
+    static int cnt = 0;
+    if(++cnt <= 15)
+    {
+        return ;
+    }
+    cnt = 0;
 
+    QDateTime  tmpDate = QDateTime::currentDateTime();
     get_PH_val(PH_DEV_ADDR);
     serial_state = READ_PH;
+    ph_map.insert(tmpDate,ph_val);
+    updateTable(PH_TABLE);
+    if(ph_map.count() == PLOT_NUM)
+    {
+        ph_map.clear();
+        return ;
+    }
     sleep(2000);//每读取一个传感器后就延时2s，以便保持串口的同步操作
 
     get_light_val(LIGHT_ADDR);
     serial_state = READ_LIGHT;
+    light_map.insert(tmpDate,light);
+    updateTable(LIGHT_TABLE);
+    if(light_map.count() == PLOT_NUM)
+    {
+        light_map.clear();
+        return ;
+    }
     sleep(2000);
 
     get_conduct_val(CONDUCT_ADDR);
     serial_state = READ_CONDUCT;
-    sleep(2000);
-
-    QDateTime  tmpDate = QDateTime::currentDateTime();
-
-    ph_map.insert(tmpDate,ph_val);
-    updateTablePH("ph");
-    if(ph_map.count() == PLOT_NUM)
+    ec_map.insert(tmpDate,ec);
+    updateTable(CONDUCT_TABLE);
+    if(ec_map.count() == PLOT_NUM)
     {
-        ph_map.clear();
-        updateOneDay("ph");
+        ec_map.clear();
         return ;
     }
+    sleep(2000);
+
     if(current_date == today)
-        emit DynamicShow(this->ph_map);
-}
-
-void MyThread::updateOneDay(QString str)
-{
-    QDateTime current_date = QDateTime::currentDateTime();
-    QString firstday = current_date.addDays(-30).toString("yyyy-MM-dd");
-
-    QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
-
-    QString delete_all_PH = QString("delete from %1 where date(date)>=date('%2') and date(date)<=date('%3')").arg(str).arg(firstday).arg(firstday);
-
-    qDebug()<<delete_all_PH;
-
-    qDebug()<<"test ....................................................................................................begin";
-    if(!database.open())
     {
-        qDebug()<<database.lastError();
-        qFatal("failed to connect.") ;
+        emit DynamicShowPH(this->ph_map);
+        emit DynamicShowEC(this->ec_map);
+        emit DynamicShowLight(this->light_map);
     }
-    else
-    {
-        QSqlQuery sql_query;
-        qDebug()<<"opend-----";
-        sql_query.prepare(create_PH);
-        if(!sql_query.exec())
-        {
-            qDebug()<<sql_query.lastError()<<"err 01 ";
-        }
-        else
-        {
-            qDebug()<<"table created!";
-
-        }
-
-        //查询所有数据
-        sql_query.prepare(delete_all_PH);
-        if(!sql_query.exec())
-        {
-            qDebug()<<sql_query.lastError()<<"err 03 ";;
-        }
-        else
-        {
-            qDebug()<<"table delet for one day!";
-        }
-    }
-    database.close();
 }
 
 void MyThread::set_conduct_addr(unsigned char dev_addr,unsigned char addr)
@@ -926,12 +909,9 @@ void MyThread::updateShow(QString str)
 {
 
     QDateTime current_date = QDateTime::currentDateTime();
-    //QString yesterday = current_date.addDays(0).toString("HH:MM:SS");
-
-    QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
-    QString select_all_PH = QString("select * from %1 order by date desc limit 0,96").arg(str);
-    //QString select_all_PH = QString("select * from %1").arg(str);
-    //QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
+    QString date_time = current_date.toString("yyyy-MM-dd");
+    QString select_table = QString("select * from %1 where date(date)>=date('%2') and date(date)<=date('%3') limit 0,96").arg(str).arg(date_time).arg(date_time);
+    QString create_table = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),var real)").arg(str);
 
     if(!database.open())
     {
@@ -942,7 +922,7 @@ void MyThread::updateShow(QString str)
     {
         QSqlQuery sql_query;
         qDebug()<<"opend-----";
-        sql_query.prepare(create_PH);
+        sql_query.prepare(create_table);
         if(!sql_query.exec())
         {
             qDebug()<<sql_query.lastError()<<"err 01 ";
@@ -954,7 +934,7 @@ void MyThread::updateShow(QString str)
         }
 
         //查询所有数据
-        sql_query.prepare(select_all_PH);
+        sql_query.prepare(select_table);
         if(!sql_query.exec())
         {
             qDebug()<<sql_query.lastError()<<"err 03 ";;
@@ -966,22 +946,26 @@ void MyThread::updateShow(QString str)
 
             if(tmp_map.count() > 0)
                 tmp_map.clear();
-            QDateTime date;
-            QString str;
+            QDateTime res_date;
+            QString res_str;
             qreal var;
             int id;
             while(sql_query.next())
             {
                 id = sql_query.value(0).toInt();
-                date = sql_query.value(1).toDateTime();
-                str = date.toLocalTime().toString();
+                res_date = sql_query.value(1).toDateTime();
+                res_str = res_date.toLocalTime().toString();
                 var = sql_query.value(2).toDouble();
-                tmp_map.insert(date,var);
+                tmp_map.insert(res_date,var);
                 //qDebug()<<QString("id:%1    date:%2    var:%3").arg(id).arg(str).arg(var);
                 //qDebug()<<QString("date:%1    var:%2").arg(str).arg(var);
             }
-
-            emit DynamicShow(tmp_map);
+            if(str.contains(PH_TABLE))
+                emit DynamicShowPH(tmp_map);
+            else if(str.contains(CONDUCT_TABLE))
+                emit DynamicShowEC(tmp_map);
+            else if(str.contains(LIGHT_TABLE))
+                emit DynamicShowLight(tmp_map);
 
             qDebug()<<"emit ..............................";
         }
@@ -989,17 +973,17 @@ void MyThread::updateShow(QString str)
     database.close();
 }
 
-void MyThread::updateTablePH(QString str)
+void MyThread::updateTable(QString str)
 {
+    QDateTime current_date = QDateTime::currentDateTime();
+    QString firstday = current_date.addDays(-31).toString("yyyy-MM-dd");
 
-    static int primary_key = 0;
+    QString create_table = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),var real)").arg(str);
 
-    QString create_PH = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),ph_var real)").arg(str);
-    //QString select_all_PH = QString("select * from %1").arg(str);
-    //QString insert_PH = QString("insert into %1(id,ph_var) values(?,?)").arg(str);
-    QString insert_PH = QString("insert into %1(ph_var) values(?)").arg(str);
-    //DELETE FROM CACHEYX WHERE id IN(SELECT id FROM CACHEYX ORDER BY TIME DESC LIMIT 3);
-    QString delete_PH = QString("delete from %1 where id in(select id from %2 order by date limit 96)").arg(str).arg(str);
+    QString insert_table = QString("insert into %1(var) values(?)").arg(str);
+
+    QString delete_table = QString("delete from %1 where date(date)>=date('%2') and date(date)<=date('%3')").arg(str).arg(firstday).arg(firstday);
+
 
 
     if(!database.open())
@@ -1015,7 +999,7 @@ void MyThread::updateTablePH(QString str)
         //也可以用来执行那些不是标准的SQL的数据库特定的命令。
         QSqlQuery sql_query;
         qDebug()<<"opend-----";
-        sql_query.prepare(create_PH);
+        sql_query.prepare(create_table);
         if(!sql_query.exec())
         {
             qDebug()<<sql_query.lastError()<<"err 01 ";
@@ -1026,12 +1010,7 @@ void MyThread::updateTablePH(QString str)
 
         }
 
-
-
-
         QVariantList  vars;
-
-        QVariantList  ids;
 
         QString query_cnt =  QString("select count(*) from %1").arg(str);
         sql_query.prepare(query_cnt);
@@ -1054,9 +1033,9 @@ void MyThread::updateTablePH(QString str)
 
         }
 
-        if(cnt >= 2000)
+        if(cnt >= 96*31)
         {
-            sql_query.prepare(delete_PH);
+            sql_query.prepare(delete_table);
             if(!sql_query.exec())
             {
                 qDebug()<<sql_query.lastError()<<"err 03 ";;
@@ -1065,10 +1044,19 @@ void MyThread::updateTablePH(QString str)
             {
                 qDebug()<<"delete ..................................................................................";
             }
+            QDateTime tmp_date = current_date.addDays(-30);
+            if(str.contains(PH_TABLE))
+                emit updateComboxPH(tmp_date);
+            else if(str.contains(CONDUCT_TABLE))
+                emit updateComboxEC(tmp_date);
+            else if(str.contains(LIGHT_TABLE))
+                emit updateComboxLight(tmp_date);
+
         }
 
-        sql_query.prepare(insert_PH);
+        sql_query.prepare(insert_table);
 #if 0
+        //用来伪造一张表做测试
         for(int i = cnt;i < 96*3;i++)
         {
             ids.append(i+1);
@@ -1080,15 +1068,12 @@ void MyThread::updateTablePH(QString str)
 
         }
 #else
-
-
-        primary_key = cnt;
-        if(primary_key >= 96*31)
-            primary_key =0;
-         primary_key++;
-
-         ids.append(primary_key);
-         vars.append(ph_val);
+        if(str.contains(PH_TABLE))
+            vars.append(ph_val);
+        else if(str.contains(CONDUCT_TABLE))
+            vars.append(static_cast<double>(ec));
+        else if(str.contains(LIGHT_TABLE))
+            vars.append(static_cast<double>(light));
 
 #endif
 

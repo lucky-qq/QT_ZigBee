@@ -48,6 +48,8 @@ signals:
 
 public:
     TableWidget *chart1;
+    TableWidget *chart2;
+    TableWidget *chart3;
 
 
 private slots:
@@ -72,7 +74,7 @@ private slots:
     //void showImage(QImage image);
 
     void on_pushButtonExit_clicked();
-    void my_Init(const QString& picture_path);
+    void my_Init();
     void change_left();
     void change_right();
 

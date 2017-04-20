@@ -54,14 +54,17 @@ public:
     void clearMapping() { m_mapping.clear(); }
 
     void UpdateData();
-    void UpdateShowPH(QMap<QDateTime,qreal> m_data);
+    void UpdateShow(QMap<QDateTime,qreal> tmp_map);
     QDateTime currencyAt(int offset) const;
+    void InitData();
+    QString title;
 private:
     //QList<QMap<QDateTime,qreal>> m_data;
     QMap<QDateTime,qreal> m_data;
     QHash<QString, QRect> m_mapping;
     int m_columnCount;
     int m_rowCount;
+
 };
 
 #endif // CUSTOMTABLEMODEL_H

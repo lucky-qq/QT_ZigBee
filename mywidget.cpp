@@ -105,8 +105,6 @@ MyWidget::MyWidget(QWidget *parent) :
     uart485_exist = 0;
 
 
-
-
     //对于子线程的东西（将被移入子线程的自定义对象以及线程对象），最好定义为指针
     myT = NULL;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
     thread = NULL;//初始化子线程线程
@@ -115,20 +113,19 @@ MyWidget::MyWidget(QWidget *parent) :
     uart485_thread = NULL;
 
     chart1 = new TableWidget ();
+    chart2 = new TableWidget ();
+    chart3 = new TableWidget ();
     uart485_module = new MyThread;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
     qRegisterMetaType<QMap<QDateTime,qreal>>("QMap<QDateTime,qreal>");
-    connect(uart485_module,&MyThread::DynamicShow,chart1,&TableWidget::updateMVC_PH,Qt::QueuedConnection);
 
-    //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
-    connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
-    detectSerial();//探测当前系统可用的串口列表
-
-
-    setDHTLayout(15);
     set_chart1_layout();
     set_chart2_layout();
     set_chart3_layout();
 
+    //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
+    connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
+    detectSerial();//探测当前系统可用的串口列表
+    setDHTLayout(15);
 
     ui->stackedWidget->setCurrentIndex(0);
     qDebug() << "main thread:========================"<< QThread::currentThread() ;
@@ -143,7 +140,6 @@ void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
      QVBoxLayout *v_layout= new  QVBoxLayout();
      QVBoxLayout *main_layout= new  QVBoxLayout();
      QWidget * tmp = new QWidget();
-
 
     int line2_cnt = num /2;
     int line1_cnt = num - line2_cnt;
@@ -170,7 +166,6 @@ void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
         main_layout->addWidget(dht_title1);
     else
         main_layout->addWidget(dht_title2);
-
 
 
     main_layout->addWidget(tmp);
@@ -215,12 +210,15 @@ void MyWidget::setDHTLayout(int num)
 
 void MyWidget::set_chart1_layout()
 {
-    chart1->axisY->setRange(0,10);
+    chart1->axisY->setRange(4,9);
+    chart1->setTitle(PH_TABLE);
     QVBoxLayout * main_layout = new QVBoxLayout();
-    headtitle *chart_title = new headtitle(QString("://src_img/g_left.png"),QString("PH值"),QString("://src_img/p_right.png"),0);
+    headtitle *chart_title = new headtitle(QString("://src_img/p_left.png"),QString("PH值"),QString("://src_img/g_right.png"),0);
     connect(chart_title,&headtitle::left,this,&MyWidget::change_left);
     connect(chart_title,&headtitle::right,this,&MyWidget::change_right);
-    connect(chart1,&TableWidget::changeShowDate,uart485_module,&MyThread::resolveDateChangePH);
+    connect(chart1,&TableWidget::changeShowDate,uart485_module,&MyThread::resolveDateChange);
+    connect(uart485_module,&MyThread::DynamicShowPH,chart1,&TableWidget::updateMVC_PH,Qt::QueuedConnection);
+    connect(uart485_module,&MyThread::updateComboxPH,chart1,&TableWidget::updateCombox,Qt::QueuedConnection);
 
     main_layout->addWidget(chart_title);
     main_layout->addWidget(chart1);
@@ -232,12 +230,17 @@ void MyWidget::set_chart1_layout()
 }
 void MyWidget::set_chart2_layout()
 {
-    TableWidget *chart2 = new TableWidget ();
-    chart2->axisY->setRange(0,200000);
+    chart2 = new TableWidget ();
+    chart2->axisY->setRange(0,100000);//默认是0---200000
+    chart2->axisY->setLabelFormat("%d");
+    chart2->setTitle(LIGHT_TABLE);
     QVBoxLayout * main_layout = new QVBoxLayout();
-    headtitle *chart_title = new headtitle(QString("://src_img/g_left.png"),QString("光照强度"),QString("://src_img/p_right.png"),0);
+    headtitle *chart_title = new headtitle(QString("://src_img/g_left.png"),QString("光照强度"),QString("://src_img/r_right.png"),0);
     connect(chart_title,&headtitle::left,this,&MyWidget::change_left);
     connect(chart_title,&headtitle::right,this,&MyWidget::change_right);
+    connect(chart2,&TableWidget::changeShowDate,uart485_module,&MyThread::resolveDateChange);
+    connect(uart485_module,&MyThread::DynamicShowLight,chart2,&TableWidget::updateMVC_PH,Qt::QueuedConnection);
+    connect(uart485_module,&MyThread::updateComboxLight,chart2,&TableWidget::updateCombox,Qt::QueuedConnection);
     main_layout->addWidget(chart_title);
     main_layout->addWidget(chart2);
     main_layout->setMargin(0);
@@ -247,12 +250,18 @@ void MyWidget::set_chart2_layout()
 }
 void MyWidget::set_chart3_layout()
 {
-    TableWidget *chart3 = new TableWidget ();
-    chart3->axisY->setRange(0,10000);
+    chart3 = new TableWidget ();
+    chart3->axisY->setRange(0,1000);//默认是0---1000
+    chart3->axisY->setLabelFormat("%d");
+    chart3->setTitle(CONDUCT_TABLE);
     QVBoxLayout * main_layout = new QVBoxLayout();
-    headtitle *dht_title = new headtitle(QString("://src_img/g_left.png"),QString("电导率"),QString("://src_img/p_right.png"),0);
+    headtitle *dht_title = new headtitle(QString("://src_img/r_left.png"),QString("电导率"),QString("://src_img/p_right.png"),0);
     connect(dht_title,&headtitle::left,this,&MyWidget::change_left);
     connect(dht_title,&headtitle::right,this,&MyWidget::change_right);
+    connect(chart3,&TableWidget::changeShowDate,uart485_module,&MyThread::resolveDateChange);
+    connect(uart485_module,&MyThread::DynamicShowEC,chart3,&TableWidget::updateMVC_PH,Qt::QueuedConnection);
+    connect(uart485_module,&MyThread::updateComboxEC,chart3,&TableWidget::updateCombox,Qt::QueuedConnection);
+
     main_layout->addWidget(dht_title);
     main_layout->addWidget(chart3);
     main_layout->setMargin(0);
@@ -291,7 +300,6 @@ void MyWidget::dealClose()
     {
 
         /*回收485子线程*/
-
         if(uart485_thread->isRunning() == false)
          {
                 return;
@@ -331,7 +339,7 @@ void MyWidget::detectSerial()
     //将每个可用串口号作为一个条目添加到串口选择下拉框
     foreach (QSerialPortInfo info, infos) {
         //ui->comboBox->addItem(info.portName());
-        if(info.portName().contains("COM1"))
+        if(info.portName().contains("ttyUSB"))
         {
             qDebug()<<"Aloha";
 
@@ -474,7 +482,7 @@ void MyWidget::change_right()
     }
 }
 
-void MyWidget::my_Init(const QString& picture_path)
+void MyWidget::my_Init()
 {
     m_widget_search_filter->Init(dir_str, filters);
 }

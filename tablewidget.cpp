@@ -44,6 +44,7 @@
 #include <QTableWidget>
 #include <QComboBox>
 #include <QVBoxLayout>
+#include "mythread.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -68,11 +69,14 @@ TableWidget::TableWidget(QWidget *parent)
     tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->resizeColumnsToContents();
     tableView->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
+    tableView->verticalHeader()->hide();
+    tableView->horizontalHeader()->setStyleSheet("font: 12pt \"Sans Serif\";");
 
-    QComboBox * dateCombox = new QComboBox;
+    dateCombox = new QComboBox;
     QDateTime today = QDateTime ::currentDateTime();
-    for (int i = -30;i <= 0; i++)
+    for (int i = 0;i >= -30; i--)
         dateCombox->addItem(today.addDays(i).toString("yyyy-MM-dd"));
+
     connect(dateCombox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &TableWidget::comBoxUpdate);
     dateCombox->setStyleSheet(QString::fromUtf8("font: 14pt \"Sans Serif\";"));
 
@@ -147,7 +151,7 @@ TableWidget::TableWidget(QWidget *parent)
 
 void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
 {
-   model->UpdateShowPH(tmp);
+   model->UpdateShow(tmp);
    qDebug()<<"signal ..............................";
 }
 
@@ -160,13 +164,30 @@ void TableWidget::resolveCombox(QWidget *editor)
 
     if(tmp_date != -1)
     {
-        qDebug()<<"---------------------------------------------------touch"<<tmp_date;
-        emit changeShowDate(tmp_date);
+        emit changeShowDate(tmp_date, model->title);
     }
-
 }
 
 void TableWidget::comBoxUpdate(int date_index)
 {
-    emit changeShowDate(date_index);
+    emit changeShowDate(date_index, model->title);
+    qDebug()<<"---------------------------------------------------touch"<<model->title;
+}
+
+void TableWidget::setTitle(QString  str)
+{
+   model->title = QString(str);
+
+}
+
+void TableWidget::updateCombox(QDateTime first_day)
+{
+    QDateTime current_day = first_day.addDays(30);
+
+    for (int i = 0;i <= 30; i++)
+        dateCombox->removeItem(i);
+
+    for (int i = 0;i >= -30; i--)
+        dateCombox->addItem(current_day.addDays(i).toString("yyyy-MM-dd"));
+
 }
