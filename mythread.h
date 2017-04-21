@@ -58,7 +58,7 @@
 #define PH_TABLE  (QString("ph"))
 #define CONDUCT_TABLE  (QString("conduct"))
 #define LIGHT_TABLE  (QString("light"))
-#define DEBUG_TIME   1
+//#define DEBUG_TIME   1
 
 //QString select_max_sql = "select max(id) from PH";
 //QString update_sql = "update student set name = :name where id = :id";
@@ -183,6 +183,7 @@ private:
     int node_type;//节点类型（判断当前数据包是哪一种类型的节点发过来的）
     int node_id;//节点序号（同类节点有可能有多个）
     unsigned int seqnb;//当前数据包的序号
+    unsigned int seq_old;
     unsigned int pkt_cnt;//读取到图片有效数据的包的个数--满32个就进行一次写入操作
 
     bool FAIL_FLAG;//读取的数据包是否发生丢失或者重复

@@ -163,7 +163,7 @@ void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
    //if(tmp.count() == 0)
         //series->clear();
    model->UpdateShow(tmp);
-   qDebug()<<"signal ..............................";
+   //qDebug()<<"signal ..............................";
 }
 
 

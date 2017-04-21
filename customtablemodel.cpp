@@ -108,7 +108,7 @@ void CustomTableModel::UpdateShow(QMap<QDateTime,qreal> tmp_map)
         this->m_data.clear();
     //this->m_data.clear();
     this->m_data = tmp_map;
-    qDebug()<<"into CustomTableModel::UpdateShowPH ";
+    //qDebug()<<"into CustomTableModel::UpdateShowPH ";
     for (int i = 0; i <m_rowCount; i++) {
             QModelIndex index = this->index(i, 0, QModelIndex());
             emit dataChanged(index, index);

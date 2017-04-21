@@ -73,6 +73,7 @@ void MyThread::initSerial(QSerialPortInfo info)
     node_type = 0;
 
     seqnb = 0;
+    seq_old = 0;
     FAIL_FLAG = false;//默认没有失败
     pkt_cnt = 0;
 
@@ -89,7 +90,7 @@ void MyThread::initSerial(QSerialPortInfo info)
     serial->setFlowControl(QSerialPort::NoFlowControl);  //无控制
     timer = new QTimer(this);
     connect(timer,&QTimer::timeout,this,&MyThread::readSerial);
-    timer->start(10);
+    timer->start(50);
 
     //readSerial();//实际意义的子线程处理函数
     qDebug() << "child thread 1:========================"<< QThread::currentThread() ;
@@ -141,7 +142,7 @@ void MyThread::initUart485(QSerialPortInfo info)
 void MyThread::resolveDateChange(int date_index,QString str)
 {
     current_date = today.addDays(-date_index);
-    qDebug()<<current_date.toString()<<"select date..................";
+    //qDebug()<<current_date.toString()<<"select date..................";
     //if(current_date != today)
     {
         QString date = current_date.toString("yyyy-MM-dd");
@@ -157,7 +158,7 @@ void MyThread::resolveDateChange(int date_index,QString str)
         else
         {
             QSqlQuery sql_query;
-            qDebug()<<"opend-----";
+            //qDebug()<<"opend-----";
             sql_query.prepare(create_table);
             if(!sql_query.exec())
             {
@@ -480,7 +481,7 @@ int MyThread::readFrameData(unsigned int length)
 //处理包头
 void MyThread::handleHead()
 {
-    static unsigned int seq_old = 0;//记录上一次读取到的数据包的序号
+    //seq_old //记录上一次读取到的数据包的序号
 
     //能够执行这个函数说明已经读完了指定包头长度的数据（表示读完了包头），要进行第二部分指定长度的数据读取了（有效数据的读取）
 
@@ -496,15 +497,20 @@ void MyThread::handleHead()
     node_type = bytesToInt(read_data.mid(0,1));//节点类型
     node_id = bytesToInt(read_data.mid(1,1));//节点id
     data_need = bytesToInt(read_data.mid(7,1));//有效数据的长度--很重要
-    seqnb = bytesToInt(read_data.mid(6,1))*256 + bytesToInt(read_data.mid(5,1));//该数据包的序号--也很重要
-
+    int tmp_seq = bytesToInt(read_data.mid(6,1))*256 + bytesToInt(read_data.mid(5,1));//该数据包的序号--也很重要
+    if(node_type == 2)
+    {
+        read_data.clear();
+        return ;
+    }
+    seqnb = tmp_seq;
     //如果该数据包序号和上一个数据包序号相等--读重复了
     if(seqnb == seq_old)
     {
         FAIL_FLAG = true;//重复--读失败的标志置位--该数据包将不会写入图片文件
         qDebug()<<"seqnb err..********************************";
     }
-    else if(seqnb - seq_old > 1 && seqnb !=1)//如果该数据包序号比上一个数据包序号大于等于2，表示中间丢了数据包
+    else if(seqnb - seq_old > 1 && seqnb !=1 && dst.isOpen())//如果该数据包序号比上一个数据包序号大于等于2，表示中间丢了数据包
     {
         //虽然读取失败了，但是该数据包是需要写入图片文件的，所以失败标志复位--要写入该数据包到图片文件
         FAIL_FLAG = false;
@@ -525,7 +531,7 @@ void MyThread::handleHead()
     seq_old = seqnb;//更新旧的数据包序号
 
     //发送信号给主线程--更新UI界面（携带包头数据）
-    emit isDone(read_data);
+    //emit isDone(read_data);
 
     //清空读取到的数据（只针对读取一个指定长度的数据包）
     read_data.clear();
@@ -573,6 +579,8 @@ void  MyThread::handlePhoto()
         //缓冲区清空
         my_stream.clear();
         photo_state = BEGIN;//更新图片的读取状态（暂时没用到）
+        seq_old = 0;
+        seqnb = 0;
 
         data_need = 0;//图片的有效数据长度清零
         cnt = 0;//读取到的所有有效数据清零
@@ -711,12 +719,10 @@ void MyThread::handleDHT()
     emit updateDHTSignal((node_id),static_cast<int>(f_humi),static_cast<int>(f_temp));
 
 
+    node_type = 0;
+    node_id = 0;
     read_data.clear();
     data_need = 0;
-    cnt = 0;
-    my_stream.clear();
-    pkt_cnt = 0;
-
 }
 
 //读取串口数据--真正子线程处理函数
@@ -734,6 +740,10 @@ void MyThread::readSerial()
         //if(serial->bytesAvailable() < 1 && debug == 0){
             //qDebug() << "子线程号：========================"<< QThread::currentThread() ;
         //}
+
+//        if(serial->bytesAvailable() < 1){
+//            qDebug() << "my child：========================"<< QThread::currentThread() ;
+//        }
 
         if(serial->bytesAvailable() >= 1 || serial->waitForReadyRead(8))//有可读数据再去读
         {
