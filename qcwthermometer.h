@@ -5,7 +5,7 @@
 #include <QPainter>
 #include <QObject>
 #include <QRectF>
-
+#include <QMutex>
 class Q_DECL_EXPORT QcwThermometer : public QWidget
 {
 Q_OBJECT

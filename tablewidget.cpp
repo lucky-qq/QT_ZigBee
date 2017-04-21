@@ -160,11 +160,9 @@ TableWidget::TableWidget(QWidget *parent)
 void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
 {
    this->chart->removeSeries(series);
-//   if(tmp.count() == 0)
-//        series->clear();
 
    delete  mapper;
-   //delete  chart;
+
    delete  series;
    delete  axisX;
    delete  axisY;
@@ -172,16 +170,8 @@ void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
    mapper = new QVXYModelMapper(this);
    model->UpdateShow(tmp);
 
-   //! [3]
-   //chart = new QChart;
-   //chart->setAnimationOptions(QChart::AllAnimations);
-   //chart->legend()->hide();
-   //! [3]
-
-   // series 1
-   //! [4]
    series = new QLineSeries();
-   //splineSeries->setName("spline");
+
 
    mapper = new QVXYModelMapper();
    mapper->setXColumn(0);
@@ -211,7 +201,7 @@ void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
    axisX->setFormat("m:s");
 #endif
    chart->setAxisX(axisX, series);
-   //chart->setTheme(QChart::ChartThemeQt);
+
 
    axisY = new QValueAxis;
    if((model->title).contains(PH_TABLE))
@@ -232,17 +222,9 @@ void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
 
         axisY->setLabelFormat("%d");
    }
-   //axisY->setRange(4, 9);
-   //axisY->setMinorTickCount(4);
 
-   //axisY->setLabelFormat("%.2f");
    chart->setAxisY(axisY, series);
 
-
-//   QChartView *chartView = new QChartView(chart);
-//   chartView->setRenderHint(QPainter::Antialiasing);
-//   chartView->setMinimumSize(640, 480);
-   //qDebug()<<"signal ..............................";
 }
 
 

@@ -6,10 +6,10 @@
 #include <QDebug>
 
 int MyDHT::cnt=0;
-
+QMutex mutex;
 MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
 {
-    thermometer=new QcwThermometer();
+    thermometer=new QcwThermometer(this);
     thermometer->resize(56, 200);
     thermometer->setMaximumWidth(80);
     thermometer->setMinimumWidth(80);
@@ -17,18 +17,23 @@ MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
     thermometer->setMaxValue(50);
     thermometer->setMinValue(0);
 
-    meter=new QcwMeter();
+    meter=new QcwMeter(this);
     meter->resize(200, 200);
     meter->setMinimumWidth(160);
 
     meter->setMaxValue(100);
     meter->setMinValue(0);
     meter->setValue(10);
+    tmp = NULL;
 
-    node_info = new QLabel();
+    node_info = new QLabel(this);
     node_info->adjustSize();
     node_info->setMaximumHeight(20);
     node_info->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
+
+    //tmp = NULL;
+
+
 
     QSpacerItem* left = new QSpacerItem(75, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
     QSpacerItem* right = new QSpacerItem(75, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -42,6 +47,7 @@ MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
     humiture_layout->setSpacing(0);
     humiture_layout->setMargin(0);
 
+    //printf("the value of &bird is::0x%0X\n",blink_timer);
 
     QSpacerItem* left1 = new QSpacerItem(75, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
     QSpacerItem* right2 = new QSpacerItem(75, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -65,6 +71,8 @@ MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
 
 
 
+
+
 void MyDHT::set_info(QString str)
 {
     node_info->setText(str);
@@ -77,6 +85,8 @@ int MyDHT::dht_count()
 
 //重写mousePressEvent事件,检测事件类型是不是点击了鼠标左键
 void MyDHT::mousePressEvent(QMouseEvent *event) {
+
+    //mutex.lock();
     //如果单击了就触发clicked信号
     if (event->button() == Qt::LeftButton) {
         //触发clicked信号
@@ -89,6 +99,7 @@ void MyDHT::mousePressEvent(QMouseEvent *event) {
         double temprature_val = this->thermometer->value();
 
         tmp = new MyDHT();
+        Q_CHECK_PTR(tmp);
 
         tmp->meter->resize(humiture_w*2,humiture_h*2);
         tmp->meter->setValue(humiture_val);
@@ -116,8 +127,10 @@ void MyDHT::mousePressEvent(QMouseEvent *event) {
         //qDebug()<<"press";
 
     }
+    //mutex.unlock();
     //将该事件传给父类处理
     QWidget::mousePressEvent(event);
+
 }
 
 QString MyDHT::get_info()
@@ -127,15 +140,21 @@ QString MyDHT::get_info()
 
 void MyDHT::mouseReleaseEvent(QMouseEvent *event)
 {
-
+    //mutex.lock();
     //int width = this->width();
     //int height = this->height();
     //this->resize(width/2,height/2);
-    tmp->close();
+    if(tmp != NULL)
+    {
+        tmp->close();
+        delete tmp;
+        tmp = NULL;
+    }
     //qDebug()<<"release";
-
+    //mutex.unlock();
     //将该事件传给父类处理
     QWidget::mousePressEvent(event);
+
 }
 
 

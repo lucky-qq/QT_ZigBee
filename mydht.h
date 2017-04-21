@@ -6,6 +6,8 @@
 #include "qcwthermometer.h"
 #include <QLabel>
 #include <QMouseEvent>
+#include <QTimer>
+#include <QMutex>
 
 class MyDHT: public QWidget
 {
@@ -19,6 +21,7 @@ public:
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
 
+
 public slots:
 
 
@@ -28,6 +31,8 @@ public:
     QLabel * node_info;
     static int cnt;
     MyDHT *tmp;
+
+
 
 };
 

@@ -179,11 +179,13 @@ void QcwThermometer::setForeground(QColor color)
     m_foreground = color;
     update();
 }
-
+//extern  QMutex mutex;
 void QcwThermometer::setBackground(QColor color)
 {
+    //mutex.lock();
     m_background = color;
     update();
+    //mutex.unlock();
 }
 
 void QcwThermometer::setLiquidColor(QColor color)

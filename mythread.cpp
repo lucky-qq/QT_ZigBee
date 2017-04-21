@@ -77,6 +77,9 @@ void MyThread::initSerial(QSerialPortInfo info)
     FAIL_FLAG = false;//默认没有失败
     pkt_cnt = 0;
 
+    dht_flag = 0;
+    dht_lose_flag = false;
+    memset(dht_received,0,DHT_NUMBERS);
 
 
     if(serial->isOpen())//先关闭
@@ -92,10 +95,78 @@ void MyThread::initSerial(QSerialPortInfo info)
     connect(timer,&QTimer::timeout,this,&MyThread::readSerial);
     timer->start(50);
 
+#ifdef BLINK
+    dht_send_timer = new QTimer(this);
+    connect(dht_send_timer,&QTimer::timeout,this,&MyThread::note_UI_thread);
+#endif
+
+    QTimer *dht_timer = new QTimer(this);
+    connect(dht_timer,&QTimer::timeout,this,&MyThread::detect_dht);
+#ifdef DEBUG_TIME
+    dht_timer->start(1000*5);
+#else
+    dht_timer->start(1000*60);//子线程开启1min以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
+#endif
+
     //readSerial();//实际意义的子线程处理函数
     qDebug() << "child thread 1:========================"<< QThread::currentThread() ;
 
 }
+
+void MyThread::detect_dht()
+{
+#ifdef DEBUG_TIME
+    static int cnt2 = 0;
+    if(++cnt2 <= 2)//（2+1)x5s
+    {
+        return ;
+    }
+    cnt2 = 0;
+#else
+    static int cnt2 = 0;
+    if(++cnt2 <= 15*2)//
+    {
+        return ;
+    }
+    cnt2 = 0;
+#endif
+    for(int i = 0;i < DHT_NUMBERS;i++)
+    {
+        if(dht_received[i] ==0 )
+        {
+
+            dht_flag |= (1 << i);
+        }
+    }
+
+    if(dht_flag != 0)
+    {
+        emit dht_lose(dht_flag);
+#ifdef BLINK
+        if(dht_lose_flag == false)
+        {
+            dht_lose_flag = true;
+            dht_send_timer->start(500);
+        }
+#endif
+    }
+
+#ifdef BLINK
+    else if(dht_flag == 0 && dht_lose_flag == true)
+    {
+        dht_lose_flag = false;
+        dht_send_timer->stop();
+    }
+#endif
+    dht_flag = 0;
+    memset(dht_received,0,DHT_NUMBERS);
+}
+#ifdef BLINK
+void MyThread::note_UI_thread()
+{
+   emit note_UI_threadSignal();
+}
+#endif
 
 void MyThread::initUart485(QSerialPortInfo info)
 {
@@ -131,7 +202,7 @@ void MyThread::initUart485(QSerialPortInfo info)
 #ifdef DEBUG_TIME
     timer->start(1000*5);
 #else
-    timer->start(1000*60);//子线程开启5s以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
+    timer->start(1000*60);//子线程开启1min以后再去读传感器数据，否则串口资源会吃紧，导致不能正确读取数据
 #endif
     //updateTablePH("ph");
     //test("ph");
@@ -215,47 +286,53 @@ void MyThread::updateSensorData()
 {
     //timer->stop();//关闭该定时器
 #ifndef DEBUG_TIME
-    static int cnt = 0;
-    if(++cnt <= 15)
+    static int cnt1 = 0;
+    if(++cnt1 <= 15)
     {
         return ;
     }
-    cnt = 0;
+    cnt1 = 0;
 #endif
 
+
     QDateTime  tmpDate = QDateTime::currentDateTime();
+
     get_PH_val(PH_DEV_ADDR);
     serial_state = READ_PH;
     ph_map.insert(tmpDate,ph_val);
     updateTable(PH_TABLE);
-    if(ph_map.count() == PLOT_NUM)
-    {
-        ph_map.clear();
-        return ;
-    }
-    sleep(2000);//每读取一个传感器后就延时2s，以便保持串口的同步操作
+    sleep(1500);//每读取一个传感器后就延时2s，以便保持串口的同步操作
 
     get_light_val(LIGHT_ADDR);
     serial_state = READ_LIGHT;
     light_map.insert(tmpDate,light);
     updateTable(LIGHT_TABLE);
-    if(light_map.count() == PLOT_NUM)
-    {
-        light_map.clear();
-        return ;
-    }
-    sleep(2000);
+    sleep(1500);
+
 
     get_conduct_val(CONDUCT_ADDR);
     serial_state = READ_CONDUCT;
     ec_map.insert(tmpDate,ec);
     updateTable(CONDUCT_TABLE);
-    if(ec_map.count() == PLOT_NUM)
+    sleep(1500);
+
+    if((ph_map.count() == PLOT_NUM) || (light_map.count() == PLOT_NUM) ||(ec_map.count() == PLOT_NUM) )
     {
-        ec_map.clear();
+        if(ph_map.count() == PLOT_NUM)
+        {
+            ph_map.clear();
+        }
+        if(light_map.count() == PLOT_NUM)
+        {
+            light_map.clear();
+
+        }
+        if(ec_map.count() == PLOT_NUM)
+        {
+            ec_map.clear();
+        }
         return ;
     }
-    sleep(2000);
 
     if(current_date == today)
     {
@@ -263,6 +340,7 @@ void MyThread::updateSensorData()
         emit DynamicShowEC(this->ec_map);
         emit DynamicShowLight(this->light_map);
     }
+
 }
 
 void MyThread::set_conduct_addr(unsigned char dev_addr,unsigned char addr)
@@ -714,7 +792,8 @@ void MyThread::handleDHT()
 
     qDebug()<<"f_temp--------------------------------------------"<<f_temp;
     qDebug()<<"f_humi--------------------------------------------"<<f_humi;
-    qDebug()<<node_id;
+    dht_received[node_id]++;
+
 
     emit updateDHTSignal((node_id),static_cast<int>(f_humi),static_cast<int>(f_temp));
 
@@ -1081,9 +1160,11 @@ void MyThread::updateTable(QString str)
     QString create_table = QString("create table IF NOT EXISTS %1 (id int primary key, date timestamp not null default (datetime('now','localtime')),var real)").arg(str);
 
     QString insert_table = QString("insert into %1(var) values(?)").arg(str);
-
+#ifndef DEBUG_TIME
     QString delete_table = QString("delete from %1 where date(date)>=date('%2') and date(date)<=date('%3')").arg(str).arg(firstday).arg(firstday);
-
+#else
+    QString delete_table = QString("delete from %1 where rowid in(select rowid from %2 order by date desc limit 0,96)").arg(str).arg(str);
+#endif
 
 
     if(!database.open())
@@ -1114,7 +1195,7 @@ void MyThread::updateTable(QString str)
 
         QString query_cnt =  QString("select count(*) from %1").arg(str);
         sql_query.prepare(query_cnt);
-        int cnt;
+        int cnt3=0;
         if(!sql_query.exec())
         {
             qDebug()<<sql_query.lastError()<<"err 03 ";;
@@ -1126,14 +1207,14 @@ void MyThread::updateTable(QString str)
 
             while(sql_query.next())
             {
-                cnt = sql_query.value(0).toInt();
-                qDebug()<<QString("count:%1").arg(cnt);
+                cnt3 = sql_query.value(0).toInt();
+                qDebug()<<QString("count:%1").arg(cnt3);
 
             }
 
         }
 
-        if(cnt >= 96*31)
+        if(cnt3 >= 96*31)
         {
             sql_query.prepare(delete_table);
             if(!sql_query.exec())
@@ -1151,18 +1232,17 @@ void MyThread::updateTable(QString str)
                 emit updateComboxEC(tmp_date);
             else if(str.contains(LIGHT_TABLE))
                 emit updateComboxLight(tmp_date);
-
         }
 
         sql_query.prepare(insert_table);
 #if 0
         //用来伪造一张表做测试
-        for(int i = cnt;i < 96*3;i++)
+        for(int i = cnt3;i < 96*3;i++)
         {
             ids.append(i+1);
 
         }
-        for(int i = cnt;i < 96*3;i++)
+        for(int i = cnt3;i < 96*3;i++)
         {
             vars.append(7.5);
 

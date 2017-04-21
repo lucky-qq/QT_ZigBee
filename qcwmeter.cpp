@@ -300,11 +300,13 @@ void QcwMeter::setForeground(QColor newForeColor)
     m_foreground = newForeColor;
     update();
 }
-
+//extern QMutex mutex;
 void QcwMeter::setBackground(QColor newBackColor)
 {
+    //mutex.lock();
     m_background = newBackColor;
     update();
+    //mutex.unlock();
 }
 
 void QcwMeter::thresholdManager()

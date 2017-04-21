@@ -59,6 +59,7 @@
 #define CONDUCT_TABLE  (QString("conduct"))
 #define LIGHT_TABLE  (QString("light"))
 #define DEBUG_TIME   1
+#define DHT_NUMBERS  16
 
 //QString select_max_sql = "select max(id) from PH";
 //QString update_sql = "update student set name = :name where id = :id";
@@ -133,6 +134,7 @@ public:
     QMap<QDateTime,qreal> ph_map;
     QDateTime current_date;
     QDateTime today;
+    bool dht_lose_flag;
 
 
 
@@ -148,11 +150,19 @@ signals:
     void updateComboxEC(QDateTime first_day);
     void updateComboxLight(QDateTime first_day);
     void updateDHTSignal(int node, int humiture,int temprature);
+    void dht_lose(quint16 flag);
+#ifdef BLINK
+    void note_UI_threadSignal();
+#endif
 
 
 
 public slots:
     void resolveDateChange(int date_index,QString str);
+    void detect_dht();
+#ifdef BLINK
+    void note_UI_thread();
+#endif
 
 private:
 
@@ -186,8 +196,12 @@ private:
     unsigned int seq_old;
     unsigned int pkt_cnt;//读取到图片有效数据的包的个数--满32个就进行一次写入操作
 
+    quint8 dht_received[DHT_NUMBERS];
+    quint16 dht_flag;
     bool FAIL_FLAG;//读取的数据包是否发生丢失或者重复
     QTimer *timer;
+    QTimer *dht_send_timer;
+
 };
 
 #endif // MYTHREAD_H

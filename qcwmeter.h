@@ -2,6 +2,7 @@
 #define QCWMETER_H
 
 #include <QWidget>
+#include <QMutex>
 
 class QColor;
 
