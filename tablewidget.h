@@ -37,6 +37,7 @@
 #include "delreconqueue.h"
 #include <QChart>
 #include <QSplineSeries>
+#include <QVXYModelMapper>
 
 QT_CHARTS_USE_NAMESPACE
 class TableWidget : public QWidget
@@ -57,6 +58,7 @@ public:
     QChart *chart;
     QLineSeries *series;
     void setTitle(QString  str);
+    QVXYModelMapper *mapper;
 
 public slots:
     void resolveCombox(QWidget *editor);

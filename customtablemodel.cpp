@@ -61,10 +61,11 @@ void CustomTableModel::InitData()
     qDebug()<<dateTime2.toString();
     for (int i = 0; i <m_rowCount; i++) {
             //m_data.insert(tmpDate.addSecs((30)*i),10);
-#ifdef DEBUG_TIME
-            m_data.insert(tmpDate.addSecs(i*7),0);
-#else
+#ifndef DEBUG_TIME
+
             m_data.insert(dateTime2.addSecs((60*15)*i),0);
+#else
+            m_data.insert(tmpDate.addSecs(i*7),0);
 #endif
             QModelIndex index = this->index(i, 0, QModelIndex());
             emit dataChanged(index, index);

@@ -102,7 +102,7 @@ TableWidget::TableWidget(QWidget *parent)
     series = new QLineSeries();
     //splineSeries->setName("spline");
 
-    QVXYModelMapper *mapper = new QVXYModelMapper(this);
+    mapper = new QVXYModelMapper(this);
     mapper->setXColumn(0);
     mapper->setYColumn(1);
     mapper->setFirstRow(0);
@@ -159,10 +159,89 @@ TableWidget::TableWidget(QWidget *parent)
 
 void TableWidget::updateMVC_PH(QMap<QDateTime,qreal> tmp)
 {
-   //this->chart->removeSeries(series);
-   //if(tmp.count() == 0)
-        //series->clear();
+   this->chart->removeSeries(series);
+//   if(tmp.count() == 0)
+//        series->clear();
+
+   delete  mapper;
+   //delete  chart;
+   delete  series;
+   delete  axisX;
+   delete  axisY;
+
+   mapper = new QVXYModelMapper(this);
    model->UpdateShow(tmp);
+
+   //! [3]
+   //chart = new QChart;
+   //chart->setAnimationOptions(QChart::AllAnimations);
+   //chart->legend()->hide();
+   //! [3]
+
+   // series 1
+   //! [4]
+   series = new QLineSeries();
+   //splineSeries->setName("spline");
+
+   mapper = new QVXYModelMapper();
+   mapper->setXColumn(0);
+   mapper->setYColumn(1);
+   mapper->setFirstRow(0);
+   mapper->setRowCount(96);
+   mapper->setSeries(series);
+   mapper->setModel(model);
+
+   chart->addSeries(series);
+   //! [4]
+
+   //! [5]
+   // for storing color hex from the series
+   QString seriesColorHex = "#000000";
+
+   // get the color of the series and use it for showing the mapped area
+   seriesColorHex = "#" + QString::number(series->pen().color().rgb(), 16).right(6).toUpper();
+   model->addMapping(seriesColorHex, QRect(0, 0, 2, model->rowCount()));
+   //! [5]
+
+   axisX = new QDateTimeAxis;
+
+#ifndef DEBUG_TIME
+   axisX->setFormat("h:m");
+#else
+   axisX->setFormat("m:s");
+#endif
+   chart->setAxisX(axisX, series);
+   //chart->setTheme(QChart::ChartThemeQt);
+
+   axisY = new QValueAxis;
+   if((model->title).contains(PH_TABLE))
+   {
+        axisY->setRange(4, 9);
+        axisY->setLabelFormat("%.2f");
+   }
+   else if((model->title).contains(CONDUCT_TABLE))
+   {
+        //axisY->setRange(0,1000);//默认是0---1000
+        axisY->setMin(0);
+        axisY->setLabelFormat("%d");
+   }
+   else if((model->title).contains(LIGHT_TABLE))
+   {
+        //axisY->setRange(0,100000);//默认是0---200000
+        axisY->setMin(0);
+
+        axisY->setLabelFormat("%d");
+   }
+   //axisY->setRange(4, 9);
+   //axisY->setMinorTickCount(4);
+
+   //axisY->setLabelFormat("%.2f");
+   chart->setAxisY(axisY, series);
+
+
+//   QChartView *chartView = new QChartView(chart);
+//   chartView->setRenderHint(QPainter::Antialiasing);
+//   chartView->setMinimumSize(640, 480);
    //qDebug()<<"signal ..............................";
 }
 

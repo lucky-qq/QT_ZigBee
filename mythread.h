@@ -58,7 +58,7 @@
 #define PH_TABLE  (QString("ph"))
 #define CONDUCT_TABLE  (QString("conduct"))
 #define LIGHT_TABLE  (QString("light"))
-//#define DEBUG_TIME   1
+#define DEBUG_TIME   1
 
 //QString select_max_sql = "select max(id) from PH";
 //QString update_sql = "update student set name = :name where id = :id";
