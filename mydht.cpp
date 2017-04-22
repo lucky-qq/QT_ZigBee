@@ -31,7 +31,11 @@ MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
     node_info->setMaximumHeight(20);
     node_info->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
 
-    //tmp = NULL;
+    tmp = NULL;
+    blink_flag = false;
+    blinkDHT_cnt = 0;
+    dht_timer = new QTimer();
+    connect(dht_timer,&QTimer::timeout,this,&MyDHT::blinkDHT);
 
 
 
@@ -88,6 +92,7 @@ void MyDHT::mousePressEvent(QMouseEvent *event) {
 
     //mutex.lock();
     //如果单击了就触发clicked信号
+    //dht_timer->stop();
     if (event->button() == Qt::LeftButton) {
         //触发clicked信号
         //emit clicked();
@@ -154,7 +159,41 @@ void MyDHT::mouseReleaseEvent(QMouseEvent *event)
     //mutex.unlock();
     //将该事件传给父类处理
     QWidget::mousePressEvent(event);
+    //dht_timer->start(500);
 
+}
+
+void MyDHT::blinkDHT()
+{
+    qDebug()<<"blink begin";
+    if(blinkDHT_cnt % 2 == 0)
+    {
+        meter->setBackground(Qt::white);
+        thermometer->setBackground(Qt::white);
+    }
+    else if (blinkDHT_cnt % 2 == 1)
+    {
+        meter->setBackground(Qt::black);
+        thermometer->setBackground(Qt::blue);
+    }
+
+    blinkDHT_cnt++;
+    qDebug()<<"blink end";
+}
+
+
+void MyDHT::setBlink(bool cmd)
+{
+    if(cmd == true && blink_flag == false)
+    {
+        dht_timer->start(500);
+        qDebug()<<"dht_timer begin";
+        blink_flag = true;
+    }else if(blink_flag == true && dht_timer != NULL && cmd == false)
+    {
+        dht_timer->stop();
+        blink_flag = false;
+    }
 }
 
 

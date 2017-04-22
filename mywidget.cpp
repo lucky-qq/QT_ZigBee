@@ -215,12 +215,28 @@ void MyWidget::updateDHTSlot(int node, int humiture,int temprature)
      dht_lose_flag &= ~(1 << node);
     (dht_items+node)->meter->setBackground(Qt::black);
     (dht_items+node)->thermometer->setBackground(Qt::blue);
+
+     (dht_items +node)->setBlink(false);
 }
 #ifdef BLINK
+
+#if 0
 void MyWidget::dht_lose_slot(quint16 flag)
 {
     dht_lose_flag = flag;
+
 }
+#else
+void MyWidget::dht_lose_slot(quint16 flag)
+{
+    if(flag == 15)
+        return;
+
+    qDebug()<<"dht_lose_slot in" << flag;
+    (dht_items +flag)->setBlink(true);
+    qDebug()<<"dht_lose_slot out";
+}
+#endif
 
 #else
 void MyWidget::dht_lose_slot(quint16 flag)
@@ -252,17 +268,18 @@ void MyWidget::show_lose_slot()
         tmp = (dht_lose_flag & (1 << i));
         if(tmp != 0)
         {
-            //qDebug()<<"lalallal lose  ==-=-=-=-+++++++++++++++++++++++++++++++++++++++";
-            if(dht_lose_cnt % 2 == 0)
-            {
-                (static_cast<MyDHT*>(dht_items+2))->thermometer->setBackground(Qt::white);
-                (static_cast<MyDHT*>(dht_items+2))->meter->setBackground(Qt::white);
-            }
-            else if(dht_lose_cnt % 2 == 1)
-            {
-                (static_cast<MyDHT*>(dht_items +2))->thermometer->setBackground(Qt::blue);
-                (static_cast<MyDHT*>(dht_items +2))->meter->setBackground(Qt::black);
-            }
+//            //qDebug()<<"lalallal lose  ==-=-=-=-+++++++++++++++++++++++++++++++++++++++";
+//            if(dht_lose_cnt % 2 == 0)
+//            {
+//                (static_cast<MyDHT*>(dht_items+2))->thermometer->setBackground(Qt::white);
+//                (static_cast<MyDHT*>(dht_items+2))->meter->setBackground(Qt::white);
+//            }
+//            else if(dht_lose_cnt % 2 == 1)
+//            {
+//                (static_cast<MyDHT*>(dht_items +2))->thermometer->setBackground(Qt::blue);
+//                (static_cast<MyDHT*>(dht_items +2))->meter->setBackground(Qt::black);
+//            }
+            (dht_items +i)->setBlink(true);
         }
     }
 
@@ -377,9 +394,10 @@ void MyWidget::dealClose()
         uart485_thread->wait();
         delete uart485_module;
 
-        /*处理温湿度节点对象*/
-        delete[] dht_items;
     }
+
+    /*处理温湿度节点对象*/
+    delete[] dht_items;
 }
 
 
@@ -438,9 +456,10 @@ void MyWidget::detectSerial()
             while(1)
             {
 
-                //qDebug()<<"go into while";
+                qDebug()<<"go into while";
                 if(serial->bytesAvailable() >= 1 || serial->waitForReadyRead(1000))//有可读数据再去读
                 {
+                    qDebug()<<"youshuju";
                     cnt_need = QString(ACK_ZIGBEE).length() - cnt_read;//更新当前还需要读取的字节数
                     cnt_tmp = serial->read(tmp_buf,cnt_need);
                     if(cnt_tmp > 0)//读取是否成功
@@ -475,10 +494,10 @@ void MyWidget::detectSerial()
 #ifdef BLINK
                                 //connect(myT,&MyThread::note_UI_threadSignal,this,&MyWidget::show_lose_slot);
 
-                                QTimer *new_dht_timer = new QTimer();
+                                //QTimer *new_dht_timer = new QTimer();
                                 //connect(new_dht_timer,&QTimer::timeout,this,&MyThread::detect_dht);
-                                connect(new_dht_timer,&QTimer::timeout,this,&MyWidget::show_lose_slot);
-                                new_dht_timer->start(500);
+                                //connect(new_dht_timer,&QTimer::timeout,this,&MyWidget::show_lose_slot);
+                                //new_dht_timer->start(5000);
 #endif
 
                                 //连接主线程的initUart信号到子线程的initSerial槽函数，开始串口初始化
@@ -487,13 +506,16 @@ void MyWidget::detectSerial()
                                 emit initUart(info);//发送串口初始化信号
                                 break;
                             }
+                        }else{
+                            continue;
                         }
                     }
                     else if(cnt_tmp == -1)//读串口失败
                     {
                         qDebug()<<"read err";
                     }
-                    continue;
+                    //continue;
+                    break;
                 }
 
 

@@ -61,6 +61,8 @@
 #define DEBUG_TIME   1
 #define DHT_NUMBERS  16
 
+#define BLINK
+
 //QString select_max_sql = "select max(id) from PH";
 //QString update_sql = "update student set name = :name where id = :id";
 //QString select_sql = "select id, name from student";

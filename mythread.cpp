@@ -135,10 +135,12 @@ void MyThread::detect_dht()
         if(dht_received[i] ==0 )
         {
 
-            dht_flag |= (1 << i);
+            //dht_flag |= (1 << i);
+            emit dht_lose(i);
         }
     }
 
+#if 0
     if(dht_flag != 0)
     {
         emit dht_lose(dht_flag);
@@ -158,13 +160,16 @@ void MyThread::detect_dht()
         dht_send_timer->stop();
     }
 #endif
+
+#endif
+
     dht_flag = 0;
     memset(dht_received,0,DHT_NUMBERS);
 }
 #ifdef BLINK
 void MyThread::note_UI_thread()
 {
-   emit note_UI_threadSignal();
+   //emit note_UI_threadSignal();
 }
 #endif
 

@@ -21,6 +21,10 @@ public:
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
 
+    void blinkDHT();
+
+    void setBlink(bool cmd);
+
 
 public slots:
 
@@ -31,6 +35,11 @@ public:
     QLabel * node_info;
     static int cnt;
     MyDHT *tmp;
+
+    bool blink_flag;
+    int blinkDHT_cnt;
+
+    QTimer * dht_timer;
 
 
 
