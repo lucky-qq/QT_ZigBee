@@ -52,6 +52,7 @@ public:
     TableWidget *chart2;
     TableWidget *chart3;
     quint16 dht_lose_flag;
+    bool dht_no_page2;
 
 
 public slots:

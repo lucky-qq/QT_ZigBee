@@ -126,6 +126,8 @@ MyWidget::MyWidget(QWidget *parent) :
     //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
     connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
     detectSerial();//探测当前系统可用的串口列表
+
+    dht_no_page2 = false;
     setDHTLayout(DHT_NUMBERS);
 
     ui->stackedWidget->setCurrentIndex(0);
@@ -179,33 +181,45 @@ void MyWidget::set_one_page(MyDHT * dht_items,QWidget * widget,int num)
 void MyWidget::setDHTLayout(int num)
 {
 
-    int count2 = num / 2;
-    int count1 = num -count2;
+    int count2 = 0;
+    int count1 = 0;
+
+    if(num <= 0)
+    {
+        qDebug()<<"dht nodes numbers err....";
+        return;
+    }
+
+    if(num > 8){
+        count2 = num / 2;
+    }else {
+        count2 = 0;
+    }
+    count1 = num -count2;
 
     dht_items = new MyDHT[num];
     dht_items1 = dht_items;
 
     set_one_page(dht_items1,ui->DHTPage,count1);
-    for(int i = 0; i < count1;i++)
+
+
+    if(count2 > 0)
     {
-        (dht_items1 + i)->set_info(QString("节点 %1").arg(i+1));
+        dht_items2 = dht_items + count1;
+        set_one_page(dht_items2,ui->DHTPage2,count2);
+
+    }else{
+        dht_no_page2 = true;
     }
-
-    dht_items2 = dht_items + count1;
-
-    set_one_page(dht_items2,ui->DHTPage2,count2);
-    for(int i = 0; i < count2;i++)
-    {
-        (dht_items2 + i)->set_info(QString("节点 %1").arg(i+1+count1));
-    }
-
 
     for(int i = 0;i < dht_items->dht_count();i++)
     {
         (dht_items+i)->meter->setValue(10+i);
         (dht_items+i)->thermometer->setValue(10+2*i);
+        (dht_items + i)->set_info(QString("节点 %1").arg(i+1));
         //printf("(init+%d) : %0X\n",i,(dht_items+i));
     }
+
 }
 
 void MyWidget::updateDHTSlot(int node, int humiture,int temprature)
@@ -488,6 +502,9 @@ void MyWidget::change_left()
 {
     if(0 == --page_index)
         page_index = ui->stackedWidget->count()-1;
+    if(page_index == 3 && dht_no_page2 == true)
+        page_index = 2;
+
     ui->stackedWidget->setCurrentIndex(page_index);
 
     if(SearchFilter::show_flag == 1)
@@ -502,7 +519,11 @@ void MyWidget::change_right()
 {
     if(ui->stackedWidget->count() == ++page_index)
         page_index = 1;
+
+    if(page_index == 3 && dht_no_page2 == true)
+        page_index = 4;
     ui->stackedWidget->setCurrentIndex(page_index);
+
     if(SearchFilter::show_flag == 1)
     {
         m_widget_search_filter->key_board->close();

@@ -77,7 +77,7 @@ void MyThread::initSerial(QSerialPortInfo info)
     FAIL_FLAG = false;//默认没有失败
     pkt_cnt = 0;
 
-    memset(dht_received,0,sizeof(dht_received));
+    memset(dht_received,0,sizeof(quint8)*DHT_NUMBERS);
 
     if(serial->isOpen())//先关闭
         serial->close();
@@ -116,7 +116,7 @@ void MyThread::detect_dht()
     cnt2 = 0;
 #else
     static int cnt2 = 0;
-    if(++cnt2 <= 15*2)//30分钟检测一次是否掉线
+    if(++cnt2 <= 16*2)//32分钟检测一次是否掉线(大于两个周期)
     {
         return ;
     }
@@ -130,7 +130,7 @@ void MyThread::detect_dht()
         }
     }
     //dht_timer->stop();
-    memset(dht_received,0,sizeof(dht_received));
+    memset(dht_received,0,sizeof(quint8)*DHT_NUMBERS);
 }
 
 
@@ -711,15 +711,15 @@ void  MyThread::handlePhoto()
 //cal(((unsigned char *)pTemphumiData + 3 + i*5), f_temp + i, f_humi + i);
 static void cal(unsigned char temp_humi[4],float *temp,float *humi)
 {
-        const double C1=-2.0468;              // for 12 Bit
-        const double C2=+0.0367;           // for 12 Bit
-        const double C3=-0.0000015955;        // for 12 Bit
-        const double T1=+0.01;             // for 14 Bit @ 5V
-        const double T2=+0.00008;           // for 14 Bit @ 5V
+    const double C1=-2.0468;              // for 12 Bit
+    const double C2=+0.0367;           // for 12 Bit
+    const double C3=-0.0000015955;        // for 12 Bit
+    const double T1=+0.01;             // for 14 Bit @ 5V
+    const double T2=+0.00008;           // for 14 Bit @ 5V
 
     unsigned int humi_i,temp_i;
-        humi_i  = (temp_humi[0]<<8) + temp_humi[1];
-        temp_i  = (temp_humi[2]<<8) + temp_humi[3];
+    humi_i  = (temp_humi[0]<<8) + temp_humi[1];
+    temp_i  = (temp_humi[2]<<8) + temp_humi[3];
 
     float rh=humi_i;             // rh:      Humidity [Ticks] 12 Bit
     float t=temp_i;           // t:       Temperature [Ticks] 14 Bit
@@ -727,7 +727,7 @@ static void cal(unsigned char temp_humi[4],float *temp,float *humi)
     float rh_true;                    // rh_true: Temperature compensated humidity
     float t_C;                        // t_C   :  Temperature [癈]
 
-        t_C=t*0.01 - 39.7;                  //calc. temperature from ticks to [癈]
+    t_C=t*0.01 - 39.7;                  //calc. temperature from ticks to [癈]
     rh_lin=C3*rh*rh + C2*rh + C1;     //calc. humidity from ticks to [%RH]
     rh_true=(t_C-25)*(T1+T2*rh)+rh_lin;   //calc. temperature compensated humidity [%RH]
     if(rh_true>100)rh_true=100;       //cut if the value is outside of
