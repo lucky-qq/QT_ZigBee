@@ -126,7 +126,7 @@ MyWidget::MyWidget(QWidget *parent) :
     //绑定/连接关闭应用程序窗口的信号和主线程的dealClose槽函数
     connect(this, &MyWidget::destroyed, this, &MyWidget::dealClose);
     detectSerial();//探测当前系统可用的串口列表
-    setDHTLayout(15);
+    setDHTLayout(DHT_NUMBERS);
 
     ui->stackedWidget->setCurrentIndex(0);
     qDebug() << "main thread:========================"<< QThread::currentThread() ;
@@ -218,79 +218,18 @@ void MyWidget::updateDHTSlot(int node, int humiture,int temprature)
 
      (dht_items +node)->setBlink(false);
 }
-#ifdef BLINK
 
-#if 0
-void MyWidget::dht_lose_slot(quint16 flag)
-{
-    dht_lose_flag = flag;
 
-}
-#else
-void MyWidget::dht_lose_slot(quint16 flag)
+
+void MyWidget::dht_lose_slot(quint16 index)
 {
-    if(flag == 15)
+    qDebug()<<"lose  in++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<index;
+    if((dht_items +index)->blink_flag == true)
         return;
-
-    qDebug()<<"dht_lose_slot in" << flag;
-    (dht_items +flag)->setBlink(true);
-    qDebug()<<"dht_lose_slot out";
+    qDebug()<<"set  in++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<index;
+    (dht_items +index)->setBlink(true);
+    qDebug()<<"set  out++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<index;
 }
-#endif
-
-#else
-void MyWidget::dht_lose_slot(quint16 flag)
-{
-    quint16 tmp=0 ;
-    for(int i = 0; i < dht_items->dht_count();i++)
-    {
-        tmp = (flag & (1 << i));
-        if(tmp != 0)
-        {
-            //(static_cast<MyDHT*>(dht_items +i))->meter->setBackground(Qt::white);
-            //(static_cast<MyDHT*>(dht_items +i))->thermometer->setBackground(Qt::white);
-        }
-    }
-}
-#endif
-
-
-//extern QMutex mutex;
-#ifdef BLINK
-void MyWidget::show_lose_slot()
-{
-    //mutex.lock();
-    static quint8 dht_lose_cnt = 0;
-    quint16 tmp=0 ;
-
-    for(int i = 0; i < dht_items->dht_count();i++)
-    {
-        tmp = (dht_lose_flag & (1 << i));
-        if(tmp != 0)
-        {
-//            //qDebug()<<"lalallal lose  ==-=-=-=-+++++++++++++++++++++++++++++++++++++++";
-//            if(dht_lose_cnt % 2 == 0)
-//            {
-//                (static_cast<MyDHT*>(dht_items+2))->thermometer->setBackground(Qt::white);
-//                (static_cast<MyDHT*>(dht_items+2))->meter->setBackground(Qt::white);
-//            }
-//            else if(dht_lose_cnt % 2 == 1)
-//            {
-//                (static_cast<MyDHT*>(dht_items +2))->thermometer->setBackground(Qt::blue);
-//                (static_cast<MyDHT*>(dht_items +2))->meter->setBackground(Qt::black);
-//            }
-            (dht_items +i)->setBlink(true);
-        }
-    }
-
-    dht_lose_cnt++;
-    //mutex.unlock();
-}
-
-#endif
-
-
-
 
 void MyWidget::set_chart1_layout()
 {
@@ -362,8 +301,6 @@ void MyWidget::dealClose()
          {
                 return;
          }
-
-
 
         //2.如果调用的是子线程的函数（对象已被放入子线程，其成员函数均在子线程）
         //需要在子线程退出的之前调用
@@ -490,15 +427,6 @@ void MyWidget::detectSerial()
                                 connect(myT,&MyThread::ImageOK,this,&MyWidget::my_Init);
                                 connect(myT,&MyThread::updateDHTSignal,this,&MyWidget::updateDHTSlot);
                                 connect(myT,&MyThread::dht_lose,this,&MyWidget::dht_lose_slot);
-
-#ifdef BLINK
-                                //connect(myT,&MyThread::note_UI_threadSignal,this,&MyWidget::show_lose_slot);
-
-                                //QTimer *new_dht_timer = new QTimer();
-                                //connect(new_dht_timer,&QTimer::timeout,this,&MyThread::detect_dht);
-                                //connect(new_dht_timer,&QTimer::timeout,this,&MyWidget::show_lose_slot);
-                                //new_dht_timer->start(5000);
-#endif
 
                                 //连接主线程的initUart信号到子线程的initSerial槽函数，开始串口初始化
                                 connect(this,&MyWidget::initUart,myT,&MyThread::initSerial);

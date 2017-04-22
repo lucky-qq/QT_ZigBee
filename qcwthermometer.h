@@ -61,7 +61,7 @@ protected:
     void paintEvent(QPaintEvent *event);
     void thresholdManager();
 
-private:
+public:
     double m_value;
     int m_minValue;
     int m_maxValue;

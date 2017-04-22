@@ -80,7 +80,7 @@ protected:
     void drawThresholdLine(QPainter *painter);
     void drawNumericValue(QPainter *painter);
 
-private:
+public:
     double m_value;
     int m_maxValue, m_minValue;
     int m_precision;

@@ -77,10 +77,7 @@ void MyThread::initSerial(QSerialPortInfo info)
     FAIL_FLAG = false;//默认没有失败
     pkt_cnt = 0;
 
-    dht_flag = 0;
-    dht_lose_flag = false;
-    memset(dht_received,0,DHT_NUMBERS);
-
+    memset(dht_received,0,sizeof(dht_received));
 
     if(serial->isOpen())//先关闭
         serial->close();
@@ -95,12 +92,7 @@ void MyThread::initSerial(QSerialPortInfo info)
     connect(timer,&QTimer::timeout,this,&MyThread::readSerial);
     timer->start(50);
 
-#ifdef BLINK
-    dht_send_timer = new QTimer(this);
-    connect(dht_send_timer,&QTimer::timeout,this,&MyThread::note_UI_thread);
-#endif
-
-    QTimer *dht_timer = new QTimer(this);
+    dht_timer = new QTimer(this);
     connect(dht_timer,&QTimer::timeout,this,&MyThread::detect_dht);
 #ifdef DEBUG_TIME
     dht_timer->start(1000*5);
@@ -134,44 +126,13 @@ void MyThread::detect_dht()
     {
         if(dht_received[i] ==0 )
         {
-
-            //dht_flag |= (1 << i);
             emit dht_lose(i);
         }
     }
-
-#if 0
-    if(dht_flag != 0)
-    {
-        emit dht_lose(dht_flag);
-#ifdef BLINK
-        if(dht_lose_flag == false)
-        {
-            dht_lose_flag = true;
-            dht_send_timer->start(500);
-        }
-#endif
-    }
-
-#ifdef BLINK
-    else if(dht_flag == 0 && dht_lose_flag == true)
-    {
-        dht_lose_flag = false;
-        dht_send_timer->stop();
-    }
-#endif
-
-#endif
-
-    dht_flag = 0;
-    memset(dht_received,0,DHT_NUMBERS);
+    //dht_timer->stop();
+    memset(dht_received,0,sizeof(dht_received));
 }
-#ifdef BLINK
-void MyThread::note_UI_thread()
-{
-   //emit note_UI_threadSignal();
-}
-#endif
+
 
 void MyThread::initUart485(QSerialPortInfo info)
 {
@@ -1006,6 +967,9 @@ void MyThread::setFlag(bool flag)
     serial->deleteLater();
     if(timer != NULL)
         timer->deleteLater();
+
+    if(dht_timer != NULL)
+        dht_timer->deleteLater();
     qDebug() << "stop";
 }
 

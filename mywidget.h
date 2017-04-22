@@ -58,9 +58,7 @@ public slots:
     void updateDHTSlot(int node, int humiture,int temprature);
     void dht_lose_slot(quint16 flag);
 
-#ifdef BLINK
-    void show_lose_slot();
-#endif
+
 private slots:
     void on_pushButton_clicked();
     void dealNum();
