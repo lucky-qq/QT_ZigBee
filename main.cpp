@@ -29,7 +29,7 @@ void dump(int signo)
 
 int main(int argc, char *argv[])
 {
-    //signal(SIGSEGV, &dump);
+    signal(SIGSEGV, &dump);
     QApplication a(argc, argv);
     //QApplication::setOverrideCursor(Qt::BlankCursor);
     MyWidget w;

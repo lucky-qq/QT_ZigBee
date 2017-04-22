@@ -36,8 +36,6 @@ MyDHT::MyDHT(QWidget *parent) : QWidget(parent)
     blinkDHT_cnt = 0;
     dht_timer = NULL;
 
-
-
     QSpacerItem* left = new QSpacerItem(75, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
     QSpacerItem* right = new QSpacerItem(75, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
@@ -158,47 +156,15 @@ void MyDHT::mousePressEvent(QMouseEvent *event)
         return;
     //如果单击了就触发clicked信号
     //dht_timer->stop();
-    if (event->button() == Qt::LeftButton) {
-
-#if 0
-        int humiture_w = this->meter->width();
-        int humiture_h = this->meter->height();
-        int temprature_w = this->thermometer->width();
-        int temprature_h = this->thermometer->height();
-        double humiture_val = this->meter->value();
-        double temprature_val = this->thermometer->value();
-
-        tmp = new MyDHT();
-        Q_CHECK_PTR(tmp);
-
-
-        tmp->meter->resize(humiture_w*2,humiture_h*2);
-        tmp->meter->setValue(humiture_val);
-        tmp->meter->setMinimumWidth(160*2);
-        tmp->meter->setMaxValue(100);
-        tmp->meter->setMinValue(0);
-
-        tmp->thermometer->setMaximumWidth(80*2);
-        tmp->thermometer->setMinimumWidth(80*2);
-        tmp->thermometer->setValue(temprature_val);
-        tmp->thermometer->setMaxValue(50);
-        tmp->thermometer->setMinValue(0);
-        tmp->thermometer->resize(temprature_w*2,temprature_h*2);
-
-        //tmp->node_info->adjustSize();
-        tmp->node_info->setMaximumHeight(20*2);
-        tmp->node_info->setStyleSheet(QString::fromUtf8("font: 20pt \"Sans Serif\";"));
-        tmp->set_info(this->get_info());
-#else
+    if (event->button() == Qt::LeftButton)
+    {
         tmp = new MyDHT(this);
         qDebug()<<"prese+++++++++++++++++++++";
 
-#endif
         tmp->setGeometry(312,100,400,400);
         tmp->show();
 
     }
-
     //将该事件传给父类处理
     QWidget::mousePressEvent(event);
 #else
@@ -268,7 +234,7 @@ void MyDHT::setBlink(bool cmd)
         connect(dht_timer,&QTimer::timeout,this,&MyDHT::blinkDHT);
         dht_timer->start(500);
     }
-    else if(blink_flag == true && dht_timer != NULL && cmd == false)
+    else if(dht_timer != NULL && cmd == false)
     {
         dht_timer->stop();
         delete dht_timer;

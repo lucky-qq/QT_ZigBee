@@ -210,25 +210,32 @@ void MyWidget::setDHTLayout(int num)
 
 void MyWidget::updateDHTSlot(int node, int humiture,int temprature)
 {
+    if((dht_items +node)->blink_flag == true)
+    {
+        (dht_items+node)->meter->setBackground(Qt::black);
+        (dht_items+node)->thermometer->setBackground(Qt::blue);
+    }
+
+
+    (dht_items +node)->blink_flag = true;//避免在写入新数据的时候，触摸发生引起冲突
     (dht_items+node)->meter->setValue(humiture);
     (dht_items+node)->thermometer->setValue(temprature);
      dht_lose_flag &= ~(1 << node);
-    (dht_items+node)->meter->setBackground(Qt::black);
-    (dht_items+node)->thermometer->setBackground(Qt::blue);
+    (dht_items +node)->blink_flag = false;
 
-     (dht_items +node)->setBlink(false);
+    (dht_items +node)->setBlink(false);
 }
 
 
 
 void MyWidget::dht_lose_slot(quint16 index)
 {
-    qDebug()<<"lose  in++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<index;
+    qDebug()<<"dht_lose_slot in ++++++++++++++++++++++++++++++++++++++++++++";
     if((dht_items +index)->blink_flag == true)
         return;
-    qDebug()<<"set  in++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<index;
+    qDebug()<<"set in ++++++++++++++++++++++++++++++++++++++++++++++++++++++";
     (dht_items +index)->setBlink(true);
-    qDebug()<<"set  out++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<index;
+    qDebug()<<"set out +++++++++++++++++++++++++++++++++++++++++++++++++++++";
 }
 
 void MyWidget::set_chart1_layout()
@@ -304,7 +311,6 @@ void MyWidget::dealClose()
 
         //2.如果调用的是子线程的函数（对象已被放入子线程，其成员函数均在子线程）
         //需要在子线程退出的之前调用
-
 
         myT->setFlag(true);//更新子线程的isStop标志--结束子线程的处理函数
         //3.退出子线程要显示的调用这两个函数，否则主线程退出但子线程还在运行
@@ -464,16 +470,10 @@ void MyWidget::detectSerial()
 
                 connect(this,&MyWidget::initUart485,uart485_module,&MyThread::initUart485);
                 emit initUart485(info);//发送串口初始化信号
-
                 break;
             }
 
         }
-
-    }
-
-    if(1)
-    {
 
     }
 }

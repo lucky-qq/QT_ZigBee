@@ -116,7 +116,7 @@ void MyThread::detect_dht()
     cnt2 = 0;
 #else
     static int cnt2 = 0;
-    if(++cnt2 <= 15*2)//
+    if(++cnt2 <= 15*2)//30分钟检测一次是否掉线
     {
         return ;
     }
