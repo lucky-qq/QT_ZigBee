@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
-QT       += serialport charts sql
+QT       += serialport charts sql network
 #CONFIG += qwt
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     mykeyboard.cpp \
     customtablemodel.cpp \
     tablewidget.cpp \
-    delreconqueue.cpp
+    delreconqueue.cpp \
+    mytcp.cpp
 
 HEADERS  += mywidget.h \
     searchfilter.h \
@@ -54,7 +55,8 @@ HEADERS  += mywidget.h \
     mykeyboard.h \
     customtablemodel.h \
     tablewidget.h \
-    delreconqueue.h
+    delreconqueue.h \
+    mytcp.h
 
 FORMS    += mywidget.ui
 

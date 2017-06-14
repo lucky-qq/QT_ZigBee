@@ -428,6 +428,14 @@ void MyThread::get_conduct_val(unsigned char dev_addr)
     if(this->read_needed_data(CONDUCT_LENGTH,(char*)tmp_buf,(char*)result_buf)==CONDUCT_LENGTH)
     {
         this->ec = ((result_buf[7] << 8) + result_buf[8]);
+        char tcp_data[16]={0};
+        tcp_data[0] = BASE;
+        tcp_data[1] = CONDUC_TYPE;
+        tcp_data[2] = 1;
+        tcp_data[3] = 2;
+        tcp_data[4] = result_buf[7];
+        tcp_data[5] = result_buf[8];
+        emit tcp(tcp_data,6);
         qDebug()<<"conduct: "<<ec;
 
     }
@@ -462,6 +470,14 @@ void MyThread::get_PH_val(unsigned char dev_addr)
     {
         this->ph_val = ((result_buf[3] << 8) + result_buf[4])/100.0;
 
+        char tcp_data[16]={0};
+        tcp_data[0] = BASE;
+        tcp_data[1] = PH_TYPE;
+        tcp_data[2] = 1;
+        tcp_data[3] = 2;
+        tcp_data[4] = result_buf[3];
+        tcp_data[5] = result_buf[4];
+        emit tcp(tcp_data,6);
         qDebug()<<"ph_val: "<<ph_val;
 
     }
@@ -496,6 +512,14 @@ void MyThread::get_light_val(unsigned char dev_addr)
     {
         this->light = ((result_buf[3] << 8) + result_buf[4])*10;
         qDebug()<<"light: "<<light;
+        char tcp_data[16]={0};
+        tcp_data[0] = BASE;
+        tcp_data[1] = LIGHT_TYPE;
+        tcp_data[2] = 1;
+        tcp_data[3] = 2;
+        tcp_data[4] = result_buf[3];
+        tcp_data[5] = result_buf[4];
+        emit tcp(tcp_data,6);
         for(int i = 0;i < 7;i++)
         {
             qDebug()<<result_buf[i];

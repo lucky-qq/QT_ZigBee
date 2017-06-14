@@ -15,6 +15,8 @@
 #include "customtablemodel.h"
 #include "tablewidget.h"
 #include <QSqlDatabase>
+#include <QTcpSocket>
+#include "mytcp.h"
 
 #define NO_SERIAL       0
 #define ONLY_ZIGBEE     1
@@ -46,6 +48,7 @@ signals:
     void load_image(const QString&  file_name);
     void initUart(QSerialPortInfo info);//发送给子线程的串口初始化信号
     void initUart485(QSerialPortInfo info);//发送给子线程的串口初始化信号
+    void connectGateway();
 
 public:
     TableWidget *chart1;
@@ -102,6 +105,9 @@ private:
     MyThread *uart485_module;//自定义对象指针--将要放入子线程
 
     QThread *uart485_thread;//子线程--负责串口数据的读取
+
+    MyTCP *mytcp_obj;
+    QThread * mytcp_thread;
 
     QStringList filters;
     headtitle * photo_title;

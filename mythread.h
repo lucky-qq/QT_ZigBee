@@ -18,6 +18,7 @@
 #include <QSqlQuery>
 
 
+
 //一个包的长度信息
 #define REAL_LEN    64//有效数据最大长度
 #define HDR_LEN     8//包头长度（固定不变）
@@ -60,6 +61,15 @@
 #define LIGHT_TABLE  (QString("light"))
 #define DEBUG_TIME   1
 #define DHT_NUMBERS  16
+
+#define BASE 1
+
+#define PH_TYPE 1
+#define CONDUC_TYPE 2
+#define LIGHT_TYPE 3
+#define WENDU_TYPE 4
+#define SHIDU_TYPE 5
+#define PHOTO_TYPE 6
 
 #define BLINK
 
@@ -152,6 +162,7 @@ signals:
     void updateComboxLight(QDateTime first_day);
     void updateDHTSignal(int node, int humiture,int temprature);
     void dht_lose(quint16 index);
+    void tcp(char * str,int len);
 
 public slots:
     void resolveDateChange(int date_index,QString str);
@@ -195,6 +206,7 @@ private:
     QTimer *timer;
 
     QTimer *dht_timer;
+
 
 };
 

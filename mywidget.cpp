@@ -113,9 +113,25 @@ MyWidget::MyWidget(QWidget *parent) :
     uart485_module = NULL;
     uart485_thread = NULL;
 
+    mytcp_obj = NULL;
+    mytcp_thread = NULL;
+
+
     chart1 = new TableWidget ();
     chart2 = new TableWidget ();
     chart3 = new TableWidget ();
+
+    mytcp_obj =new MyTCP;
+
+    mytcp_thread = new QThread(this);
+
+    mytcp_obj->moveToThread(mytcp_thread);
+    mytcp_thread->start();
+
+    connect(this,&MyWidget::connectGateway,mytcp_obj,&MyTCP::connectToGateway);
+    emit connectGateway();
+    qDebug()<<"mytcp*******************************************";
+
     uart485_module = new MyThread;//将被子线程处理的自定义对象不能在主线程初始化的时候指定父对象
     qRegisterMetaType<QMap<QDateTime,qreal>>("QMap<QDateTime,qreal>");
 
@@ -355,6 +371,22 @@ void MyWidget::dealClose()
 
     /*处理温湿度节点对象*/
     delete[] dht_items;
+
+    if(mytcp_thread != NULL && mytcp_obj != NULL)
+    {
+
+        /*回收485子线程*/
+        if(mytcp_thread->isRunning() == false)
+         {
+                return;
+         }
+
+        mytcp_obj->setFlag(true);
+        mytcp_thread->quit();
+        mytcp_thread->wait();
+        delete mytcp_obj;
+
+    }
 }
 
 
@@ -490,6 +522,13 @@ void MyWidget::detectSerial()
         }
 
     }
+
+
+    connect(uart485_module,&MyThread::tcp,mytcp_obj,&MyTCP::tcp_send);
+    connect(myT,&MyThread::tcp,mytcp_obj,&MyTCP::tcp_send);
+
+
+
 }
 
 MyWidget::~MyWidget()
