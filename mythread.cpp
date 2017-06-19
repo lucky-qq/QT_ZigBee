@@ -634,6 +634,7 @@ void  MyThread::handlePhoto()
 
         //QImage *image=new QImage(ImageName);
         emit ImageOK(ImageName);
+        emit send_pic(ImageName);
         //while(1);
 
         //打印调试信息
@@ -782,12 +783,21 @@ void MyThread::handleDHT()
 
     qDebug()<<"f_temp--------------------------------------------"<<f_temp;
     qDebug()<<"f_humi--------------------------------------------"<<f_humi;
+
     dht_received[node_id]++;
+
+    char tcp_data[16]={0};
+    tcp_data[0] = BASE;
+    tcp_data[1] = DHT_TYPE;
+    tcp_data[2] = node_id;
+    tcp_data[3] = 2;
+    tcp_data[4] = (char)(f_temp);
+    tcp_data[5] = (char)(f_humi);
 
 
     emit updateDHTSignal((node_id),static_cast<int>(f_humi),static_cast<int>(f_temp));
 
-
+    emit tcp(tcp_data,6);
     node_type = 0;
     node_id = 0;
     read_data.clear();

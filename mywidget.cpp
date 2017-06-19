@@ -254,6 +254,7 @@ void MyWidget::updateDHTSlot(int node, int humiture,int temprature)
     (dht_items +node)->blink_flag = false;
 
     (dht_items +node)->setBlink(false);
+
 }
 
 
@@ -526,8 +527,7 @@ void MyWidget::detectSerial()
 
     connect(uart485_module,&MyThread::tcp,mytcp_obj,&MyTCP::tcp_send);
     connect(myT,&MyThread::tcp,mytcp_obj,&MyTCP::tcp_send);
-
-
+    connect(myT,&MyThread::send_pic,mytcp_obj,&MyTCP::startTransfer);
 
 }
 

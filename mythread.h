@@ -67,9 +67,8 @@
 #define PH_TYPE 1
 #define CONDUC_TYPE 2
 #define LIGHT_TYPE 3
-#define WENDU_TYPE 4
-#define SHIDU_TYPE 5
-#define PHOTO_TYPE 6
+#define DHT_TYPE 4
+#define PHOTO_TYPE 5
 
 #define BLINK
 
@@ -163,6 +162,7 @@ signals:
     void updateDHTSignal(int node, int humiture,int temprature);
     void dht_lose(quint16 index);
     void tcp(char * str,int len);
+    void send_pic(QString pic_path);
 
 public slots:
     void resolveDateChange(int date_index,QString str);
