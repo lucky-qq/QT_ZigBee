@@ -224,6 +224,7 @@ void MyDHT::blinkDHT()
 
 void MyDHT::setBlink(bool cmd)
 {
+#ifdef  BLINK
     if(cmd == true && blink_flag == false)
     {
 #ifdef ZJ_DEBUG
@@ -241,6 +242,20 @@ void MyDHT::setBlink(bool cmd)
         dht_timer = NULL;
         blink_flag = false;
     }
+#endif
+
+    if(cmd == true && blink_flag == false)
+    {
+
+        blink_flag = true;
+        meter->setBackground(Qt::white);
+        thermometer->setBackground(Qt::white);
+    }
+    else if(cmd == false)
+    {
+        blink_flag = false;
+    }
+
 }
 
 
